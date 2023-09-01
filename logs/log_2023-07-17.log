@@ -1,0 +1,115 @@
+2023-07-17 19:00:36 | INFO | __init__.py:2138 | Target [ID:612075626]: success
+2023-07-17 19:00:36 | INFO | __init__.py:2138 | 1 messages successful sent.
+2023-07-17 19:00:36 | INFO | dispatcher.py:493 | Start polling
+2023-07-17 19:00:36 | INFO | dispatcher.py:329 | Run polling for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:00:51 | INFO | dispatcher.py:160 | Update id=708640191 is handled. Duration 234 ms by bot id=6047290937
+2023-07-17 19:00:53 | INFO | dispatcher.py:160 | Update id=708640192 is handled. Duration 125 ms by bot id=6047290937
+2023-07-17 19:00:55 | INFO | dispatcher.py:160 | Update id=708640193 is handled. Duration 170 ms by bot id=6047290937
+2023-07-17 19:00:58 | INFO | dispatcher.py:160 | Update id=708640194 is handled. Duration 79 ms by bot id=6047290937
+2023-07-17 19:01:03 | INFO | dispatcher.py:160 | Update id=708640195 is handled. Duration 280 ms by bot id=6047290937
+2023-07-17 19:01:08 | INFO | dispatcher.py:160 | Update id=708640196 is handled. Duration 280 ms by bot id=6047290937
+2023-07-17 19:01:11 | INFO | dispatcher.py:160 | Update id=708640197 is handled. Duration 92 ms by bot id=6047290937
+2023-07-17 19:01:39 | INFO | dispatcher.py:160 | Update id=708640198 is handled. Duration 407 ms by bot id=6047290937
+2023-07-17 19:01:47 | INFO | dispatcher.py:160 | Update id=708640199 is handled. Duration 156 ms by bot id=6047290937
+2023-07-17 19:01:50 | INFO | dispatcher.py:160 | Update id=708640200 is handled. Duration 250 ms by bot id=6047290937
+2023-07-17 19:02:05 | INFO | dispatcher.py:160 | Update id=708640201 is handled. Duration 203 ms by bot id=6047290937
+2023-07-17 19:02:11 | INFO | dispatcher.py:160 | Update id=708640202 is handled. Duration 264 ms by bot id=6047290937
+2023-07-17 19:02:15 | INFO | dispatcher.py:160 | Update id=708640203 is handled. Duration 219 ms by bot id=6047290937
+2023-07-17 19:02:37 | INFO | dispatcher.py:160 | Update id=708640204 is handled. Duration 266 ms by bot id=6047290937
+2023-07-17 19:02:38 | INFO | dispatcher.py:160 | Update id=708640205 is handled. Duration 140 ms by bot id=6047290937
+2023-07-17 19:02:59 | INFO | dispatcher.py:160 | Update id=708640206 is handled. Duration 188 ms by bot id=6047290937
+2023-07-17 19:03:02 | INFO | dispatcher.py:160 | Update id=708640207 is handled. Duration 94 ms by bot id=6047290937
+2023-07-17 19:03:04 | INFO | dispatcher.py:160 | Update id=708640208 is handled. Duration 109 ms by bot id=6047290937
+2023-07-17 19:03:09 | INFO | dispatcher.py:160 | Update id=708640209 is handled. Duration 281 ms by bot id=6047290937
+2023-07-17 19:03:18 | INFO | dispatcher.py:160 | Update id=708640210 is handled. Duration 264 ms by bot id=6047290937
+2023-07-17 19:03:20 | INFO | dispatcher.py:160 | Update id=708640211 is handled. Duration 203 ms by bot id=6047290937
+2023-07-17 19:06:45 | INFO | dispatcher.py:520 | Polling stopped
+2023-07-17 19:06:45 | INFO | dispatcher.py:345 | Polling stopped for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:06:45 | ERROR | bot.py:89 | Возникла ошибка
+2023-07-17 19:06:48 | INFO | __init__.py:2138 | Target [ID:612075626]: success
+2023-07-17 19:06:48 | INFO | __init__.py:2138 | 1 messages successful sent.
+2023-07-17 19:06:48 | INFO | dispatcher.py:493 | Start polling
+2023-07-17 19:06:48 | INFO | dispatcher.py:329 | Run polling for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:06:54 | INFO | dispatcher.py:160 | Update id=708640212 is handled. Duration 280 ms by bot id=6047290937
+2023-07-17 19:06:56 | INFO | dispatcher.py:160 | Update id=708640213 is handled. Duration 187 ms by bot id=6047290937
+2023-07-17 19:06:59 | INFO | dispatcher.py:160 | Update id=708640214 is handled. Duration 203 ms by bot id=6047290937
+2023-07-17 19:07:01 | INFO | dispatcher.py:160 | Update id=708640215 is handled. Duration 280 ms by bot id=6047290937
+2023-07-17 19:07:05 | INFO | dispatcher.py:160 | Update id=708640216 is handled. Duration 79 ms by bot id=6047290937
+2023-07-17 19:07:09 | INFO | dispatcher.py:160 | Update id=708640217 is handled. Duration 344 ms by bot id=6047290937
+2023-07-17 19:51:13 | INFO | dispatcher.py:520 | Polling stopped
+2023-07-17 19:51:13 | INFO | dispatcher.py:345 | Polling stopped for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:51:13 | ERROR | bot.py:89 | Возникла ошибка
+2023-07-17 19:51:16 | INFO | __init__.py:2138 | Target [ID:612075626]: success
+2023-07-17 19:51:16 | INFO | __init__.py:2138 | 1 messages successful sent.
+2023-07-17 19:51:16 | INFO | dispatcher.py:493 | Start polling
+2023-07-17 19:51:16 | INFO | dispatcher.py:329 | Run polling for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:51:30 | INFO | dispatcher.py:160 | Update id=708640218 is handled. Duration 250 ms by bot id=6047290937
+2023-07-17 19:51:32 | INFO | dispatcher.py:160 | Update id=708640219 is handled. Duration 94 ms by bot id=6047290937
+2023-07-17 19:53:06 | INFO | dispatcher.py:520 | Polling stopped
+2023-07-17 19:53:06 | INFO | dispatcher.py:345 | Polling stopped for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:53:06 | ERROR | bot.py:89 | Возникла ошибка
+2023-07-17 19:53:09 | INFO | __init__.py:2138 | Target [ID:612075626]: success
+2023-07-17 19:53:09 | INFO | __init__.py:2138 | 1 messages successful sent.
+2023-07-17 19:53:09 | INFO | dispatcher.py:493 | Start polling
+2023-07-17 19:53:09 | INFO | dispatcher.py:329 | Run polling for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:53:10 | INFO | dispatcher.py:160 | Update id=708640220 is handled. Duration 265 ms by bot id=6047290937
+2023-07-17 19:53:40 | INFO | dispatcher.py:520 | Polling stopped
+2023-07-17 19:53:40 | INFO | dispatcher.py:345 | Polling stopped for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:53:40 | ERROR | bot.py:89 | Возникла ошибка
+2023-07-17 19:53:43 | INFO | __init__.py:2138 | Target [ID:612075626]: success
+2023-07-17 19:53:43 | INFO | __init__.py:2138 | 1 messages successful sent.
+2023-07-17 19:53:43 | INFO | dispatcher.py:493 | Start polling
+2023-07-17 19:53:43 | INFO | dispatcher.py:329 | Run polling for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:53:44 | INFO | dispatcher.py:160 | Update id=708640221 is handled. Duration 264 ms by bot id=6047290937
+2023-07-17 19:53:47 | INFO | dispatcher.py:160 | Update id=708640222 is handled. Duration 109 ms by bot id=6047290937
+2023-07-17 19:53:48 | INFO | dispatcher.py:160 | Update id=708640223 is handled. Duration 94 ms by bot id=6047290937
+2023-07-17 19:53:49 | INFO | dispatcher.py:160 | Update id=708640224 is handled. Duration 78 ms by bot id=6047290937
+2023-07-17 19:53:53 | INFO | dispatcher.py:160 | Update id=708640225 is handled. Duration 188 ms by bot id=6047290937
+2023-07-17 19:54:50 | INFO | dispatcher.py:345 | Polling stopped for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:54:50 | INFO | dispatcher.py:520 | Polling stopped
+2023-07-17 19:54:50 | ERROR | bot.py:89 | Возникла ошибка
+2023-07-17 19:54:53 | INFO | __init__.py:2138 | Target [ID:612075626]: success
+2023-07-17 19:54:53 | INFO | __init__.py:2138 | 1 messages successful sent.
+2023-07-17 19:54:53 | INFO | dispatcher.py:493 | Start polling
+2023-07-17 19:54:53 | INFO | dispatcher.py:329 | Run polling for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 19:54:54 | INFO | dispatcher.py:160 | Update id=708640226 is handled. Duration 187 ms by bot id=6047290937
+2023-07-17 19:54:57 | INFO | dispatcher.py:160 | Update id=708640227 is handled. Duration 125 ms by bot id=6047290937
+2023-07-17 20:07:18 | INFO | dispatcher.py:520 | Polling stopped
+2023-07-17 20:07:18 | INFO | dispatcher.py:345 | Polling stopped for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 20:07:18 | ERROR | bot.py:89 | Возникла ошибка
+2023-07-17 20:07:21 | INFO | __init__.py:2138 | Target [ID:612075626]: success
+2023-07-17 20:07:21 | INFO | __init__.py:2138 | 1 messages successful sent.
+2023-07-17 20:07:21 | INFO | dispatcher.py:493 | Start polling
+2023-07-17 20:07:21 | INFO | dispatcher.py:329 | Run polling for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 20:07:22 | INFO | dispatcher.py:160 | Update id=708640228 is handled. Duration 250 ms by bot id=6047290937
+2023-07-17 20:07:24 | INFO | dispatcher.py:160 | Update id=708640229 is handled. Duration 156 ms by bot id=6047290937
+2023-07-17 20:07:48 | INFO | dispatcher.py:520 | Polling stopped
+2023-07-17 20:07:48 | INFO | dispatcher.py:345 | Polling stopped for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 20:07:48 | ERROR | bot.py:89 | Возникла ошибка
+2023-07-17 20:07:51 | INFO | __init__.py:2138 | Target [ID:612075626]: success
+2023-07-17 20:07:51 | INFO | __init__.py:2138 | 1 messages successful sent.
+2023-07-17 20:07:51 | INFO | dispatcher.py:493 | Start polling
+2023-07-17 20:07:51 | INFO | dispatcher.py:329 | Run polling for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 20:07:52 | INFO | dispatcher.py:160 | Update id=708640230 is handled. Duration 171 ms by bot id=6047290937
+2023-07-17 20:07:54 | INFO | dispatcher.py:160 | Update id=708640231 is handled. Duration 93 ms by bot id=6047290937
+2023-07-17 20:08:32 | INFO | dispatcher.py:520 | Polling stopped
+2023-07-17 20:08:32 | INFO | dispatcher.py:345 | Polling stopped for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 20:08:32 | ERROR | bot.py:89 | Возникла ошибка
+2023-07-17 20:08:34 | INFO | __init__.py:2138 | Target [ID:612075626]: success
+2023-07-17 20:08:34 | INFO | __init__.py:2138 | 1 messages successful sent.
+2023-07-17 20:08:34 | INFO | dispatcher.py:493 | Start polling
+2023-07-17 20:08:34 | INFO | dispatcher.py:329 | Run polling for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-17 20:08:36 | INFO | dispatcher.py:160 | Update id=708640232 is handled. Duration 171 ms by bot id=6047290937
+2023-07-17 20:08:37 | INFO | dispatcher.py:160 | Update id=708640233 is handled. Duration 109 ms by bot id=6047290937
+2023-07-17 20:09:28 | INFO | dispatcher.py:160 | Update id=708640234 is handled. Duration 343 ms by bot id=6047290937
+2023-07-17 20:09:33 | INFO | dispatcher.py:160 | Update id=708640235 is handled. Duration 312 ms by bot id=6047290937
+2023-07-17 20:09:40 | INFO | dispatcher.py:160 | Update id=708640236 is handled. Duration 218 ms by bot id=6047290937
+2023-07-17 20:09:41 | INFO | dispatcher.py:160 | Update id=708640237 is handled. Duration 187 ms by bot id=6047290937
+2023-07-17 20:09:43 | INFO | dispatcher.py:160 | Update id=708640238 is handled. Duration 250 ms by bot id=6047290937
+2023-07-17 20:09:44 | INFO | dispatcher.py:160 | Update id=708640239 is handled. Duration 203 ms by bot id=6047290937
+2023-07-17 20:09:45 | INFO | dispatcher.py:160 | Update id=708640240 is handled. Duration 172 ms by bot id=6047290937
+2023-07-17 20:12:11 | INFO | dispatcher.py:160 | Update id=708640241 is handled. Duration 187 ms by bot id=6047290937
+2023-07-17 20:12:12 | INFO | dispatcher.py:160 | Update id=708640242 is handled. Duration 94 ms by bot id=6047290937
+2023-07-18 00:28:48 | INFO | dispatcher.py:520 | Polling stopped
+2023-07-18 00:28:48 | INFO | dispatcher.py:345 | Polling stopped for bot @wb_auto_comment_bot id=6047290937 - 'Автоответчик WB'
+2023-07-18 00:28:48 | ERROR | bot.py:89 | Возникла ошибка
