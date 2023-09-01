@@ -7,6 +7,7 @@ from tgbot.keyboards.callback_data import FirstMarket, EditModeMessages, DeleteM
 from tgbot.keyboards.inline import myself_office_kb, add_office_kb, cancel_add_token, check_setting_market, \
     adit_mode_messages, delete_market_kb
 from tgbot.misc.api_wb_methods import ApiClient
+from tgbot.misc.main_texts_and_funcs import markets_dict
 from tgbot.misc.states import EnterTokenState, EditStarsList
 from tgbot.models.db_commands import select_client, create_name_market_wb, select_market, select_token
 
@@ -136,18 +137,22 @@ async def choose_mode_messages(call: CallbackQuery, callback_data: EditModeMessa
     market = await select_market(callback_data.id)
     text = ''
     if callback_data.mode_mes == 'auto':
-        market.auto_send_star_1 = True
-        market.auto_send_star_2 = True
-        market.auto_send_star_3 = True
-        market.auto_send_star_4 = True
-        market.auto_send_star_5 = True
+        for m in markets_dict(market).values():
+            m = True
+        # market.auto_send_star_1 = True
+        # market.auto_send_star_2 = True
+        # market.auto_send_star_3 = True
+        # market.auto_send_star_4 = True
+        # market.auto_send_star_5 = True
         text = 'Вы изменили режим отправки сообщений на Автоматический 🤖'
     elif callback_data.mode_mes == 'not_auto':
-        market.auto_send_star_1 = False
-        market.auto_send_star_2 = False
-        market.auto_send_star_3 = False
-        market.auto_send_star_4 = False
-        market.auto_send_star_5 = False
+        for m in markets_dict(market).values():
+            m = False
+        # market.auto_send_star_1 = False
+        # market.auto_send_star_2 = False
+        # market.auto_send_star_3 = False
+        # market.auto_send_star_4 = False
+        # market.auto_send_star_5 = False
         text = 'Вы изменили режим отправки сообщений на Полуавтоматический 📺'
     market.save()
     await call.answer(text=text, show_alert=True)

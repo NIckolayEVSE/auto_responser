@@ -8,7 +8,7 @@ from aiogram.utils.markdown import hbold, hcode
 from tgbot.config import Config
 from tgbot.keyboards.callback_data import ManualCallback
 from tgbot.keyboards.inline import main_menu_kb, gen_again_kb, back_to_main_menu, back_menu_bot_kb
-from tgbot.misc.main_texts_and_funcs import text_system, generate_text_func
+from tgbot.misc.main_texts_and_funcs import generate_text_func
 from tgbot.misc.states import EnterYourItemState
 from tgbot.models.db_commands import create_client, select_client, create_manual_feed, select_manual_feed
 

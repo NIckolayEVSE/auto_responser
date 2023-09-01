@@ -7,6 +7,16 @@ from tgbot.config import Config
 from tgbot.misc.gpt_answers import chat_gpt_ai
 
 
+def markets_dict(market):
+    return {
+        1: market.auto_send_star_1,
+        2: market.auto_send_star_2,
+        3: market.auto_send_star_3,
+        4: market.auto_send_star_4,
+        5: market.auto_send_star_5
+    }
+
+
 def return_dct_messages(text_feedback, system_text: str = None) -> list[dict]:
     if system_text is None:
         system_text = 'I want you to act as a Менеджер маркетплейса and respond to a review in a way that' \
