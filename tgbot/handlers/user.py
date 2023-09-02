@@ -4,10 +4,11 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.markdown import hbold, hcode
+from loguru import logger
 
 from tgbot.config import Config
 from tgbot.keyboards.callback_data import ManualCallback
-from tgbot.keyboards.inline import main_menu_kb, gen_again_kb, back_to_main_menu, back_menu_bot_kb
+from tgbot.keyboards.inline import main_menu_kb, gen_again_kb, back_to_main_menu, back_menu_bot_kb, first_show_bot_kb
 from tgbot.misc.main_texts_and_funcs import generate_text_func
 from tgbot.misc.states import EnterYourItemState
 from tgbot.models.db_commands import create_client, select_client, create_manual_feed, select_manual_feed
@@ -21,13 +22,16 @@ async def user_start(message: Message, state: FSMContext):
     Показывает главное меню при нажатии команды /start
     """
     user = await select_client(message.from_user.id)
+    await state.clear()
     if not user:
-        await message.answer_audio(audio='BAACAgIAAxkBAAIC1GS36EiKh67fXRwgRm7FRyn4VAX3AALbMgACM9LBSTCRON3AUg02LwQ',
-                                   caption='Пожалуйста, прежде чем, начать пользоваться ботом'
-                                           ' ознакомьтесь с инструкцией 📖')
         await create_client(telegram_id=message.from_user.id, username=message.from_user.username,
                             name=message.from_user.full_name, url=message.from_user.url)
-    await state.clear()
+        logger.info("Создан пользователь ID: {} USERNAME: {}".format(message.from_user.id, message.from_user.username))
+        # return await message.answer_audio(
+        #     audio='BAACAgIAAxkBAAIC1GS36EiKh67fXRwgRm7FRyn4VAX3AALbMgACM9LBSTCRON3AUg02LwQ',
+        #     caption='Пожалуйста, прежде чем, начать пользоваться ботом'
+        #             ' ознакомьтесь с инструкцией 📖', reply_markup=await first_show_bot_kb())
+
     await message.answer(text="Главное меню 🧾", reply_markup=await main_menu_kb())
 
 

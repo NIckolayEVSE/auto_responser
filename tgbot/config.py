@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from environs import Env
 
-from tgbot.misc.main_texts_and_funcs import OpenAIGPT
+from tgbot.misc.gpt_open_ai import OpenAIGPT
 
 
 @dataclass

@@ -1,14 +1,13 @@
-import asyncio
 import re
 
 from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto
 from aiogram.utils.markdown import hcode, hlink, hbold
 
-from send_feedbacks_for_users import send_feedback
 from tgbot.config import Config
 from tgbot.keyboards.callback_data import AnswerFeedback, AnswerPhotoFeedback, NewGen
 from tgbot.keyboards.on_check_feed_kb import on_check_kb
+from tgbot.misc.api_wb_methods import ApiClient
 from tgbot.misc.main_texts_and_funcs import generate_text_func, send_error
 from tgbot.models.db_commands import select_feedback
 
@@ -43,16 +42,16 @@ async def regexp_func(message: Message):
 
 
 @inline_router.callback_query(AnswerFeedback.filter())
-async def send_answer(call: CallbackQuery, callback_data: AnswerFeedback, bot: Bot):
+async def send_answer(call: CallbackQuery, callback_data: AnswerFeedback, bot: Bot, config: Config):
     feedback = await select_feedback(callback_data.id)
     feedback.answered_feed = True
     try:
-        await send_feedback(feedback.market.token, feedback.feedback_id, feedback.answer)
+        await ApiClient.send_feedback(feedback.market.token, feedback.feedback_id, feedback.answer)
         feedback.save()
     except Exception as error:
         await call.message.answer('При отправке отзыва произошла ошибка!')
         text = f'При отправке отзыва ID {callback_data.id} произошла ошибка: {error}'
-        return await send_error(bot, error_text=text)
+        return await send_error(bot, config, error_text=text)
     await call.message.delete_reply_markup()
     await call.message.answer("Отзыв опубликован! ✅")
 

@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -7,7 +9,7 @@ from tgbot.keyboards.callback_data import FirstMarket, EditModeMessages, DeleteM
 from tgbot.keyboards.inline import myself_office_kb, add_office_kb, cancel_add_token, check_setting_market, \
     adit_mode_messages, delete_market_kb
 from tgbot.misc.api_wb_methods import ApiClient
-from tgbot.misc.main_texts_and_funcs import markets_dict
+from tgbot.misc.main_texts_and_funcs import set_market_autosend_state, set_market_stars, validate_list_stars
 from tgbot.misc.states import EnterTokenState, EditStarsList
 from tgbot.models.db_commands import select_client, create_name_market_wb, select_market, select_token
 
@@ -28,7 +30,7 @@ async def my_cabinets_func(call: CallbackQuery, state: FSMContext):
     text = 'Список ваших магазинов: 🏬\n\nПоддерживается добавление до 5 магазинов включительно\n' \
            f'Сейчас добавлено магазинов: {cabinets.count()}'
     if not cabinets:
-        text = 'У вас пока нет магазинов! 🈴'
+        text = 'У вас пока нет магазинов!  🈴'
     await call.message.edit_text(text, reply_markup=await add_office_kb(cabinets))
 
 
@@ -48,19 +50,25 @@ async def add_token_func(call: CallbackQuery, state: FSMContext):
 @my_office_router.message(EnterTokenState.enter_token, F.text)
 async def enter_token_func(message: Message, state: FSMContext):
     token = message.text
-    in_db_token = await select_token(token)
+    token_already_registered_msg = 'Похоже этот токен уже зарегистрирован 🆘\n\n' + \
+                                   'Попробуйте еще раз 🔄 или нажмите кнопку <b>Отмена</b> ❌'
+
+    incorrect_token_msg = 'Похоже вы ввели не верный токен 🔑\n\n' + \
+                          'Попробуйте еще раз 🔄 или нажмите кнопку <b>Отмена</b> ❌'
+
+    prompt_market_name_msg = 'Придумайте имя вашего магазина 👇'
+
+    in_db_token, status_token = await asyncio.gather(
+        select_token(token),
+        ApiClient(api_key=token).check_standard_token()
+    )
     if in_db_token:
-        await message.answer(text='Похоже этот токен уже зарегистрирован 🆘\n\nПопробуйте еще раз 🔄 или '
-                                  'нажмите кнопку <b>Отмена</b> ❌', reply_markup=await cancel_add_token())
-        return
-    status_token = await ApiClient(api_key=token).check_standard_token()
+        return await message.answer(text=token_already_registered_msg, reply_markup=await cancel_add_token())
     if status_token != 200:
-        await message.answer('Похоже вы ввели не верный токен 🔑\n\nПопробуйте еще раз 🔄 или нажмите'
-                             ' кнопку <b>Отмена</b> ❌',
-                             reply_markup=await cancel_add_token())
-        return
+        return await message.answer(text=incorrect_token_msg, reply_markup=await cancel_add_token())
+
     await state.update_data(token=token)
-    await message.answer('Придумайте имя вашего магазина 👇', reply_markup=await cancel_add_token())
+    await message.answer(prompt_market_name_msg, reply_markup=await cancel_add_token())
     await state.set_state(EnterTokenState.enter_market_name)
 
 
@@ -91,7 +99,7 @@ async def check_first_market_func(event: CallbackQuery | Message, callback_data:
                       f'3. ⭐️⭐️⭐️ - {"Автоматический" if market.auto_send_star_3 else "Полуавтоматический"}',
                       f'4. ⭐️⭐️⭐️⭐️ - {"Автоматический" if market.auto_send_star_4 else "Полуавтоматический"}',
                       f'5. ⭐️⭐️⭐️⭐️⭐️ - {"Автоматический" if market.auto_send_star_5 else "Полуавтоматический"}\n',
-                      f'Если хотите изменить режим для одной или нескольких оценок — введите их через запятую.'
+                      f'Если хотите изменить режим для одной или нескольких оценок — введите их через запятую. '
                       f'Например: 1, 2, 3'])
 
     if isinstance(event, CallbackQuery):
@@ -108,25 +116,23 @@ async def enter_list_stars_func(message: Message, state: FSMContext):
     data = await state.get_data()
     market = await select_market(int(data['pk']))
     list_stars = list_stars.replace(' ', '')
-    if (len(list_stars) > 1 and ',' not in list_stars) or not ''.join(list_stars.split(',')).isdigit():
+    # if (len(list_stars) > 1 and ',' not in list_stars) or not ''.join(list_stars.split(',')).isdigit():
+    #     await message.answer("Кажется вы ошиблись с вводом! 🆘\n\nПопробуйте еще раз 🔄")
+    #     await check_first_market_func(message, FirstMarket(id=int(data['pk'])), state=state)
+    #     return
+
+    if not validate_list_stars(list_stars):
         await message.answer("Кажется вы ошиблись с вводом! 🆘\n\nПопробуйте еще раз 🔄")
-        await check_first_market_func(message, FirstMarket(id=int(data['pk'])), state=state)
-        return
+        return await check_first_market_func(message, FirstMarket(id=int(data['pk'])), state=state)
+
     for star in list_stars.split(','):
-        if int(star) > 5:
-            await message.answer("Кажется вы ошиблись с вводом! 🆘\n\nПопробуйте еще раз 🔄")
-            await check_first_market_func(message, FirstMarket(id=int(data['pk'])), state=state)
-            return
-        if int(star) == 1:
-            market.auto_send_star_1 = True
-        if int(star) == 2:
-            market.auto_send_star_2 = True
-        if int(star) == 3:
-            market.auto_send_star_3 = True
-        if int(star) == 4:
-            market.auto_send_star_4 = True
-        if int(star) == 5:
-            market.auto_send_star_5 = True
+        # if int(star) > 5:
+        #     await message.answer("Кажется вы ошиблись с вводом! 🆘\n\nПопробуйте еще раз 🔄")
+        #     await check_first_market_func(message, FirstMarket(id=int(data['pk'])), state=state)
+        #     return
+
+        set_market_stars(market, int(star))
+
     market.save()
     await check_first_market_func(message, FirstMarket(id=int(data['pk'])), state=state)
 
@@ -137,22 +143,10 @@ async def choose_mode_messages(call: CallbackQuery, callback_data: EditModeMessa
     market = await select_market(callback_data.id)
     text = ''
     if callback_data.mode_mes == 'auto':
-        for m in markets_dict(market).values():
-            m = True
-        # market.auto_send_star_1 = True
-        # market.auto_send_star_2 = True
-        # market.auto_send_star_3 = True
-        # market.auto_send_star_4 = True
-        # market.auto_send_star_5 = True
+        set_market_autosend_state(market, True)
         text = 'Вы изменили режим отправки сообщений на Автоматический 🤖'
     elif callback_data.mode_mes == 'not_auto':
-        for m in markets_dict(market).values():
-            m = False
-        # market.auto_send_star_1 = False
-        # market.auto_send_star_2 = False
-        # market.auto_send_star_3 = False
-        # market.auto_send_star_4 = False
-        # market.auto_send_star_5 = False
+        set_market_autosend_state(market, False)
         text = 'Вы изменили режим отправки сообщений на Полуавтоматический 📺'
     market.save()
     await call.answer(text=text, show_alert=True)

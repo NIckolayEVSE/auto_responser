@@ -24,7 +24,7 @@ def scheduler_jobs(bot, config: Config):
 async def on_startup(bot: Bot, admin_ids: list[int], config):
     await set_commands(bot)
     configure_logger(True)
-    await broadcaster.broadcast(bot, admin_ids, "Бот запущен")
+    # await broadcaster.broadcast(bot, admin_ids, "Бот запущен")
     scheduler_jobs(bot, config)
 
 
@@ -62,15 +62,16 @@ async def main():
     from tgbot.handlers.time_send_handler import time_router
     from tgbot.handlers.my_offices import my_office_router
     from tgbot.handlers.inline import inline_router
-    # from tgbot.handlers.echo import echo_router
+    from tgbot.handlers.echo import echo_router
     from tgbot.handlers.admin import admin_router
     for router in [
         user_router,
         my_office_router,
         time_router,
+        echo_router,
         inline_router,
         admin_router,
-        # echo_router,
+
     ]:
         dp.include_router(router)
 

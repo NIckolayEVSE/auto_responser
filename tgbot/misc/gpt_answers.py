@@ -9,8 +9,6 @@ import aiohttp
 from Cryptodome.Cipher import AES
 from Cryptodome.Util.Padding import pad
 
-from tgbot.misc.main_texts_and_funcs import return_dct_messages
-
 
 async def get_gpt(model: str, messages: list, **kwargs):
     def encrypt(e):
@@ -86,10 +84,8 @@ async def ai_chat(messages: list):
                 return
 
 
-async def chat_gpt_ai(client_feed: str, messages: list = None):
+async def chat_gpt_ai(messages: list):
     chat = ''
-    if messages is not None:
-        messages = return_dct_messages(client_feed)
     for message in messages:
         chat += '%s: %s\n' % (message['role'], message['content'])
     chat += 'assistant: '
