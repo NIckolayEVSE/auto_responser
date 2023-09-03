@@ -17,7 +17,7 @@ def set_market_stars(market, star_num):
     setattr(market, f'auto_send_star_{star_num}', True)
 
 
-async def validate_list_stars(list_stars: str) -> bool:
+def validate_list_stars(list_stars: str) -> bool:
     list_stars = list_stars.replace(' ', '')
     if (len(list_stars) > 1 and ',' not in list_stars) or not ''.join(list_stars.split(',')).isdigit():
         return False
@@ -84,4 +84,3 @@ async def generate_text_func(client_feed, bot: Bot, config: Config):
             error_text = 'Пустой ответ, нужно обновить доступ к GPT. Сейчас используется OPENAI GPT'
             await send_error(bot, config, error_text)
     return config.misc.open_ai.create_chat_completion(messages=return_dct_messages(client_feed))
-

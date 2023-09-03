@@ -34,7 +34,11 @@ async def scanning_answers(bot: Bot, config: Config):
         auto_check = {i: getattr(market, f'auto_send_star_{i}') for i in range(1, 6)}
         feedback = await ApiClient.get_feedbacks(market.token)
 
-        if not feedback['data']['feedbacks']:
+        if not feedback:
+            logger.info(f'Ошибка запроса клиента {market.user.username}')
+            continue
+
+        if feedback and not feedback['data']['feedbacks']:
             logger.info(f'Отзывов для пользователя {market.user.username} ID: {market.user.telegram_id} не найдено')
             continue
 
