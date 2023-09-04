@@ -39,3 +39,5 @@ yarl==1.8.2
 pycryptodomex
 requests
 openai
+gspread~=5.9.0
+gspread_formatting

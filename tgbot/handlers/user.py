@@ -21,16 +21,17 @@ async def user_start(message: Message, state: FSMContext):
     """
     Показывает главное меню при нажатии команды /start
     """
-    user = await select_client(message.from_user.id)
     await state.clear()
+
+    user = await select_client(message.from_user.id)
     if not user:
         await create_client(telegram_id=message.from_user.id, username=message.from_user.username,
                             name=message.from_user.full_name, url=message.from_user.url)
         logger.info("Создан пользователь ID: {} USERNAME: {}".format(message.from_user.id, message.from_user.username))
-        # return await message.answer_audio(
-        #     audio='BAACAgIAAxkBAAIC1GS36EiKh67fXRwgRm7FRyn4VAX3AALbMgACM9LBSTCRON3AUg02LwQ',
-        #     caption='Пожалуйста, прежде чем, начать пользоваться ботом'
-        #             ' ознакомьтесь с инструкцией 📖', reply_markup=await first_show_bot_kb())
+        return await message.answer_audio(
+            audio='BAACAgIAAxkBAAIC1GS36EiKh67fXRwgRm7FRyn4VAX3AALbMgACM9LBSTCRON3AUg02LwQ',
+            caption='Пожалуйста, прежде чем, начать пользоваться ботом'
+                    ' ознакомьтесь с инструкцией 📖', reply_markup=await first_show_bot_kb())
 
     await message.answer(text="Главное меню 🧾", reply_markup=await main_menu_kb())
 
@@ -71,7 +72,10 @@ async def enter_item_feedback_state(message: Message, state: FSMContext, bot: Bo
     message_delete = await message.answer('Генерирую ответ, пожалуйста, подождите ⏱')
     answer_text = await generate_text_func(text_feedback, bot, config)
     await message_delete.delete()
-    text_result = f'{hbold("Ваш отзыв")}:\n\n{hcode(text_feedback)}\n\n{hbold("Сгенерированный ответ:")}\n\n{hcode(answer_text)}'
+    text_result = "\n".join([f'{hbold("Ваш отзыв")}:',
+                             f'{hcode(text_feedback)}\n',
+                             f'{hbold("Сгенерированный ответ:")}',
+                             f'{hcode(answer_text)}'])
     await message.answer(text=text_result, reply_markup=await gen_again_kb(feed_id))
     await state.set_state(None)
 
@@ -80,5 +84,7 @@ async def enter_item_feedback_state(message: Message, state: FSMContext, bot: Bo
 async def gen_again_func(call: CallbackQuery, bot: Bot, callback_data: ManualCallback, config: Config):
     feed = await select_manual_feed(callback_data.id)
     answer_text = await generate_text_func(feed.feedback, bot, config)
-    text_result = f'{hbold("Ваш отзыв")}:\n\n{hcode(feed.feedback)}\n\n{hbold("Сгенерированный новый ответ:")}\n\n{answer_text}'
+    text_result = "\n".join([f'{hbold("Ваш отзыв")}:',
+                             f'{hcode(feed.feedback)}\n', f'{hbold("Сгенерированный новый ответ:")}',
+                             f'{answer_text}'])
     await call.message.edit_text(text=text_result, reply_markup=await gen_again_kb(feed))
