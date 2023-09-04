@@ -1,15 +1,18 @@
 import asyncio
 
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.markdown import hbold
 
-from tgbot.keyboards.callback_data import FirstMarket, EditModeMessages, DeleteMarket
+from tgbot.config import Config
+from tgbot.keyboards.callback_data import FirstMarket, EditModeMessages, DeleteMarket, EmptyTextCallback, \
+    EditEmptyTextCallback
 from tgbot.keyboards.inline import myself_office_kb, add_office_kb, cancel_add_token, check_setting_market, \
-    adit_mode_messages, delete_market_kb
+    adit_mode_messages, delete_market_kb, answer_to_empty_kb
 from tgbot.misc.api_wb_methods import ApiClient
-from tgbot.misc.main_texts_and_funcs import set_market_autosend_state, set_market_stars, validate_list_stars
+from tgbot.misc.main_texts_and_funcs import set_market_autosend_state, set_market_stars, validate_list_stars, \
+    empty_text, send_error
 from tgbot.misc.states import EnterTokenState, EditStarsList
 from tgbot.models.db_commands import select_client, create_name_market_wb, select_market, select_token
 
@@ -48,7 +51,7 @@ async def add_token_func(call: CallbackQuery, state: FSMContext):
 
 
 @my_office_router.message(EnterTokenState.enter_token, F.text)
-async def enter_token_func(message: Message, state: FSMContext):
+async def enter_token_func(message: Message, state: FSMContext, config: Config, bot: Bot):
     token = message.text
     token_already_registered_msg = 'Похоже этот токен уже зарегистрирован 🆘\n\n' + \
                                    'Попробуйте еще раз 🔄 или нажмите кнопку <b>Отмена</b> ❌'
@@ -65,6 +68,13 @@ async def enter_token_func(message: Message, state: FSMContext):
     if in_db_token:
         return await message.answer(text=token_already_registered_msg, reply_markup=await cancel_add_token())
     if status_token != 200:
+        user = await select_client(message.from_user.id)
+        tokens = user.inc_wb_token.all().count()
+        text = "\n".join([
+            f'Новый пользователь у которого не верный токен USERNAME: {user.username} ID: {user.telegram_id}\n',
+            'Всего не верных токенов {}'.format(tokens)
+        ])
+        await send_error(bot, config, error_text=text)
         return await message.answer(text=incorrect_token_msg, reply_markup=await cancel_add_token())
 
     await state.update_data(token=token)
@@ -112,25 +122,15 @@ async def check_first_market_func(event: CallbackQuery | Message, callback_data:
 
 @my_office_router.message(EditStarsList.enter_list_stars, F.text)
 async def enter_list_stars_func(message: Message, state: FSMContext):
-    list_stars = message.text
+    list_stars = message.text.replace(' ', '')
     data = await state.get_data()
     market = await select_market(int(data['pk']))
-    list_stars = list_stars.replace(' ', '')
-    # if (len(list_stars) > 1 and ',' not in list_stars) or not ''.join(list_stars.split(',')).isdigit():
-    #     await message.answer("Кажется вы ошиблись с вводом! 🆘\n\nПопробуйте еще раз 🔄")
-    #     await check_first_market_func(message, FirstMarket(id=int(data['pk'])), state=state)
-    #     return
 
     if not validate_list_stars(list_stars):
         await message.answer("Кажется вы ошиблись с вводом! 🆘\n\nПопробуйте еще раз 🔄")
         return await check_first_market_func(message, FirstMarket(id=int(data['pk'])), state=state)
 
     for star in list_stars.split(','):
-        # if int(star) > 5:
-        #     await message.answer("Кажется вы ошиблись с вводом! 🆘\n\nПопробуйте еще раз 🔄")
-        #     await check_first_market_func(message, FirstMarket(id=int(data['pk'])), state=state)
-        #     return
-
         set_market_stars(market, int(star))
 
     market.save()
@@ -168,3 +168,30 @@ async def delete_market(call: CallbackQuery, state: FSMContext):
     market.delete()
     await call.answer('Вы успешно удалили магазин ✅ -> 🗑')
     await my_cabinets_func(call, state)
+
+
+@my_office_router.callback_query(EmptyTextCallback.filter())
+async def set_empty_text(call: CallbackQuery, callback_data: EmptyTextCallback, state: FSMContext):
+    market = await select_market(callback_data.id)
+    await state.update_data(id_empty_market=callback_data.id)
+    await call.message.edit_text(text=empty_text(market.send_empty_text),
+                                 reply_markup=await answer_to_empty_kb(market))
+
+
+@my_office_router.callback_query(EditEmptyTextCallback.filter())
+async def choose_mode_empty_text(call: CallbackQuery, callback_data: EditEmptyTextCallback, state: FSMContext):
+    market = await select_market(callback_data.id)
+    if callback_data.mode == 'stop_answer':
+        market.send_empty_text = False
+    elif callback_data.mode == 'ok_answer':
+        market.send_empty_text = True
+    market.save()
+    await state.update_data(id_empty_market=callback_data.id)
+    await call.message.edit_text(text=empty_text(market.send_empty_text),
+                                 reply_markup=await answer_to_empty_kb(market))
+
+
+@my_office_router.callback_query(F.data == 'back_to_call')
+async def back_to_call(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    await check_first_market_func(call, FirstMarket(id=data.get('id_empty_market')), state=state)

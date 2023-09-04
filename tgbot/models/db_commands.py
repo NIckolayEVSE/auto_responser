@@ -3,7 +3,7 @@ import datetime
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
 
-from admin_panel.telebot.models import Client, WbToken, FeedbackAnswer, ManualGeneration
+from admin_panel.telebot.models import Client, WbToken, FeedbackAnswer, ManualGeneration, IncorrectWbToken
 
 
 @sync_to_async()
@@ -75,3 +75,9 @@ def create_manual_feed(user: Client, feed):
 @sync_to_async
 def select_manual_feed(pk):
     return ManualGeneration.objects.filter(pk=pk).first()
+
+
+@sync_to_async
+def create_incorrect_token(user, token):
+    return IncorrectWbToken.objects.create(user=user, token=token)
+

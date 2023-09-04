@@ -83,8 +83,13 @@ async def scanning_answers(bot: Bot, config: Config):
 
             answer_feed = False
             if auto_check[feed['productValuation']] and select_time:
-                if market.user.feedbacks_send:
+                # ответ на пустые отзывы
+                if not market.send_empty_text and not feed["text"]:
+                    logger.info(
+                        f'Не отвечать на пустой текст отзыва. Магазин:{market.name_market} USERNAME {market.user.username}')
+                    continue
 
+                if market.user.feedbacks_send:
                     await ApiClient.send_feedback(market.token, feed['id'], result_text)
 
                     text = "\n".join([f'Ответ на отзыв успешно отправлен\n', text,
@@ -107,6 +112,7 @@ async def scanning_answers(bot: Bot, config: Config):
                     logger.info(
                         f'Ответ на отзыв на проверке у пользователя {market.user.username} ID: {market.user.telegram_id}')
                     await asyncio.sleep(0.1)
+
                 except (TelegramForbiddenError, TelegramBadRequest):
                     continue
 

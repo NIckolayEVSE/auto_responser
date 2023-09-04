@@ -36,3 +36,12 @@ class DeleteMarket(CallbackData, prefix='market_to_del'):
 
 class ManualCallback(CallbackData, prefix='manual'):
     id: int
+
+
+class EmptyTextCallback(CallbackData, prefix='empty'):
+    id: int
+
+
+class EditEmptyTextCallback(CallbackData, prefix='edit_empty'):
+    id: int
+    mode: str

@@ -1,5 +1,6 @@
 import asyncio
 from aiogram import Bot
+from aiogram.utils.markdown import hbold
 
 from tgbot.config import Config
 from tgbot.misc.gpt_answers import chat_gpt_ai
@@ -83,4 +84,15 @@ async def generate_text_func(client_feed, bot: Bot, config: Config):
         else:
             error_text = 'Пустой ответ, нужно обновить доступ к GPT. Сейчас используется OPENAI GPT'
             await send_error(bot, config, error_text)
-    return config.misc.open_ai.create_chat_completion(messages=return_dct_messages(client_feed))
+    return await config.misc.open_ai.create_chat_completion(messages=return_dct_messages(client_feed))
+
+
+def empty_text(market: bool):
+    text = "\n".join(['Настройка режима ответа на отзывы без текста.\n',
+                      'В данном разделе вы имеете возможность настроить функцию автоматического'
+                      ' ответа на отзывы, которые не содержат текста.',
+                      f'Обратите {hbold("внимание")}: данная настройка не будет применяться ко всем вашим магазинам одновременно.'
+                      ' Ее нужно активировать для каждого магазина индивидуально.\n',
+                      f'Текущий режим ответов: {hbold("Отвечать") if market else hbold("Не отвечать")}'
+                      ])
+    return text

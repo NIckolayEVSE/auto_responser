@@ -60,6 +60,19 @@ class Client(CreatedModel):
         return "{} ({})".format(self.username, self.telegram_id)
 
 
+class IncorrectWbToken(models.Model):
+    user = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        verbose_name='Токен WB',
+        related_name='inc_wb_token'
+    )
+    token = models.CharField(
+        max_length=150,
+        verbose_name='Токен WB пользователя'
+    )
+
+
 class WbToken(models.Model):
     user = models.ForeignKey(
         Client,
@@ -80,6 +93,10 @@ class WbToken(models.Model):
         max_length=150,
         null=True,
         verbose_name='Название магазина пользователя'
+    )
+    send_empty_text = models.BooleanField(
+        default=True,
+        verbose_name='Ответ на отзывы без текста'
     )
     auto_send_star_1 = models.BooleanField(
         default=False,

@@ -64,11 +64,12 @@ async def main():
     from tgbot.handlers.inline import inline_router
     from tgbot.handlers.echo import echo_router
     from tgbot.handlers.admin import admin_router
+
     for router in [
         user_router,
         my_office_router,
         time_router,
-        echo_router,
+        # echo_router,
         inline_router,
         admin_router,
 

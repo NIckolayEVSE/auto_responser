@@ -1,6 +1,7 @@
 import re
 
 from aiogram import Router, F, Bot
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto
 from aiogram.utils.markdown import hcode, hlink, hbold
 
@@ -19,10 +20,12 @@ async def regexp_func(message: Message):
     pattern = r'@wb_auto_comment_bot Не удаляйте эту строку \(редактируйте только текст отзыва\) feedback_id=(.{20})\n\n(.*)'
     matches = re.findall(pattern, message.text, re.DOTALL)
     if not matches:
+        # await message.delete()
         return await message.answer("Ошибка при изменение отзыва 🆘")
     feedback_id = matches[0][0]
     check_feedback_id = await select_feedback(feedback_id)
     if not check_feedback_id:
+        # await message.delete()
         return await message.answer("Ошибка при изменение отзыва 🆘")
     remaining_text = matches[0][1].strip()
     feedback = await select_feedback(feedback_id)
@@ -37,6 +40,10 @@ async def regexp_func(message: Message):
 
     result_text = "\n".join([f'Отзыв изменен ✅\n', f'{hbold("Магазин")}: {feedback.market.name_market}', text,
                              f"Отредактированный ответ:\n{remaining_text}"])
+    try:
+        await message.delete()
+    except TelegramBadRequest:
+        pass
     await message.answer(text=result_text,
                          reply_markup=await on_check_kb(feedback.feedback_id, text_for_edit, feedback.link_photos))
 

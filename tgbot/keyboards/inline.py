@@ -1,6 +1,8 @@
+from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from tgbot.keyboards.callback_data import FirstMarket, EditModeMessages, DeleteMarket, ManualCallback
+from tgbot.keyboards.callback_data import FirstMarket, EditModeMessages, DeleteMarket, ManualCallback, \
+    EmptyTextCallback, EditEmptyTextCallback
 
 
 async def main_menu_kb():
@@ -75,16 +77,11 @@ async def adit_mode_messages(market):
     kb.button(text='🤖 Все в автоматическом режиме', callback_data=EditModeMessages(id=market.pk, mode_mes='auto'))
     kb.button(text='⚙️ Все в полуавтоматическом режиме',
               callback_data=EditModeMessages(id=market.pk, mode_mes='not_auto'))
+    kb.button(text='📝 Ответ на отзывы без текста', callback_data=EmptyTextCallback(id=market.pk))
     kb.button(text='🗑 Удалить магазин', callback_data=DeleteMarket(id=market.pk))
     kb.button(text='🏢 Мои кабинеты', callback_data='my_cabinets')
     kb.adjust(1)
     return kb.as_markup()
-
-
-# async def show_offices_kb():
-#     kb = InlineKeyboardBuilder()
-#     kb.button(text='Мои кабинеты', callback_data='my_office')
-#     return kb.as_markup()
 
 
 async def cancel_enter_stars_state():
@@ -98,3 +95,14 @@ async def delete_market_kb():
     kb.button(text='✔️ Да', callback_data='yes_del')
     kb.button(text='✖️ Нет', callback_data='my_cabinets')
     return kb.as_markup()
+
+
+async def answer_to_empty_kb(mode):
+    kb = InlineKeyboardBuilder()
+    if mode.send_empty_text:
+        kb.button(text='❌ Не отвечать', callback_data=EditEmptyTextCallback(id=mode.pk, mode='stop_answer'))
+    else:
+        kb.button(text='✅ Отвечать', callback_data=EditEmptyTextCallback(id=mode.pk, mode='ok_answer'))
+    row = InlineKeyboardButton(text='🔙 Назад', callback_data='back_to_call')
+    row2 = InlineKeyboardButton(text='🏢 Мои кабинеты', callback_data='my_cabinets')
+    return kb.adjust(1).row(row, row2).as_markup()
