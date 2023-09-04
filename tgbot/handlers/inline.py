@@ -39,7 +39,7 @@ async def regexp_func(message: Message):
                       ])
 
     result_text = "\n".join([f'Отзыв изменен ✅\n', f'{hbold("Магазин")}: {feedback.market.name_market}', text,
-                             f"Отредактированный ответ:\n{remaining_text}"])
+                             f"{hbold('Отредактированный ответ')}:\n{remaining_text}"])
     try:
         await message.delete()
     except TelegramBadRequest:
