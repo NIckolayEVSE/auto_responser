@@ -4,7 +4,7 @@ import os
 import random
 import re
 
-import aiohttp
+
 from aiogram import Bot
 from aiogram.exceptions import TelegramForbiddenError, TelegramBadRequest
 from aiogram.utils.markdown import hcode, hlink, hbold

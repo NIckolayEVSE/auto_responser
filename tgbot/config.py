@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from environs import Env
 
+from tgbot.misc.generate_google_sheets import Sheets
 from tgbot.misc.gpt_open_ai import OpenAIGPT
 
 
@@ -36,6 +37,7 @@ class Miscellaneous:
     super_user_name: str
     super_user_pass: str
     open_ai: OpenAIGPT
+    google_table: Sheets
 
 
 @dataclass
@@ -67,7 +69,8 @@ def load_config(path: str = None):
             scheduler=AsyncIOScheduler(timezone=env.str('TIME_ZONE')),
             super_user_name=env.str('SUPER_USER_NAME'),
             super_user_pass=env.str('SUPER_USER_PASS'),
-            open_ai=OpenAIGPT(env.str('OPENAI_TOKEN'))
+            open_ai=OpenAIGPT(env.str('OPENAI_TOKEN')),
+            google_table=Sheets()
         ),
         redis=Redis(
             host=env.str('REDIS_HOST'),

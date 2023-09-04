@@ -98,6 +98,10 @@ class WbToken(models.Model):
         default=True,
         verbose_name='Ответ на отзывы без текста'
     )
+    use_sheet = models.BooleanField(
+        default=False,
+        verbose_name='Если True, используется Google Sheet'
+    )
     auto_send_star_1 = models.BooleanField(
         default=False,
         verbose_name='False, то полуавтоматический режим'
@@ -176,4 +180,18 @@ class ManualGeneration(models.Model):
     )
     feedback = models.TextField(
         verbose_name='Текст от пользователя для генерации'
+    )
+
+
+class GmailMarkets(models.Model):
+    market = models.ForeignKey(
+        WbToken,
+        on_delete=models.CASCADE,
+        verbose_name='Магазин, которому url',
+        related_name='gmail_markets'
+    )
+    url = models.CharField(
+        null=True,
+        max_length=100,
+        verbose_name='Ссылка на таблицу магазина'
     )

@@ -31,7 +31,7 @@ async def my_cabinets_func(call: CallbackQuery, state: FSMContext):
     user = await select_client(call.message.chat.id)
     cabinets = user.wb_token.all()
     text = 'Список ваших магазинов: 🏬\n\nПоддерживается добавление до 5 магазинов включительно\n' \
-           f'Сейчас добавлено магазинов: {cabinets.count()}'
+           f'Сейчас добавлено магазинов: {cabinets.count() if cabinets.count() else 0}'
     if not cabinets:
         text = 'У вас пока нет магазинов!  🈴'
     await call.message.edit_text(text, reply_markup=await add_office_kb(cabinets))

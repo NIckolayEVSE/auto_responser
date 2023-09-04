@@ -45,3 +45,16 @@ class EmptyTextCallback(CallbackData, prefix='empty'):
 class EditEmptyTextCallback(CallbackData, prefix='edit_empty'):
     id: int
     mode: str
+
+
+class EditModeGenerate(CallbackData, prefix='mode_gen'):
+    id: int
+
+
+class EditMode(CallbackData, prefix='edit_mode'):
+    id: int
+    mode: str
+
+
+class MarketsTables(CallbackData, prefix='market_tables'):
+    id: int

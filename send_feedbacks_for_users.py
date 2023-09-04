@@ -31,6 +31,8 @@ async def scanning_answers(bot: Bot, config: Config):
     from tgbot.models.db_commands import create_answer_feedback, select_all_markets
     markets = await select_all_markets()
     for market in markets:
+        if market.use_sheet:
+            continue
         auto_check = {i: getattr(market, f'auto_send_star_{i}') for i in range(1, 6)}
         feedback = await ApiClient.get_feedbacks(market.token)
 

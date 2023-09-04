@@ -3,7 +3,7 @@ import datetime
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
 
-from admin_panel.telebot.models import Client, WbToken, FeedbackAnswer, ManualGeneration, IncorrectWbToken
+from admin_panel.telebot.models import Client, WbToken, FeedbackAnswer, ManualGeneration, IncorrectWbToken, GmailMarkets
 
 
 @sync_to_async()
@@ -80,4 +80,15 @@ def select_manual_feed(pk):
 @sync_to_async
 def create_incorrect_token(user, token):
     return IncorrectWbToken.objects.create(user=user, token=token)
+
+
+@sync_to_async
+def create_gmail(market, url):
+    return GmailMarkets.objects.create(market=market, url=url)
+
+
+@sync_to_async
+def select_markets(user):
+    return GmailMarkets.objects.filter(market__user=user)
+
 

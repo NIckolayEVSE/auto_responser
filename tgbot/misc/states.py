@@ -28,3 +28,7 @@ class EddSignature(StatesGroup):
 
 class EditSignature(StatesGroup):
     enter_signature = State()
+
+
+class AddGmailState(StatesGroup):
+    gmail = State()
