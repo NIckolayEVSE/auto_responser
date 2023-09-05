@@ -56,11 +56,13 @@ def select_all_markets():
 
 @sync_to_async
 def create_answer_feedback(market, rating, feedback, answer, feedback_id, name_feedback, answer_feed, link_photos=None,
-                           link_feed=None):
+                           link_feed=None, generated_mode=True):
     return FeedbackAnswer.objects.create(market=market, rating=rating, feedback=feedback, answer=answer,
                                          feedback_id=feedback_id, link_photos=link_photos, link_feedback=link_feed,
                                          name_item=name_feedback,
-                                         day_answer=datetime.datetime.now(), answered_feed=answer_feed)
+                                         day_answer=datetime.datetime.now(), answered_feed=answer_feed,
+                                         generated_mode=generated_mode
+                                         )
 
 
 @sync_to_async
@@ -94,11 +96,16 @@ def select_markets(user):
 
 
 @sync_to_async
-def create_answer_triggers(market, feedback_id, text, answer, rating, name_item, link_item):
+def create_answer_triggers(market, feedback_id, text, answer, rating, name_item, link_item, trigger):
     return AnswerTriggers.objects.create(market=market, feedback_id=feedback_id, text=text, answer=answer,
-                                         rating=rating, name_item=name_item, link_item=link_item)
+                                         rating=rating, name_item=name_item, link_item=link_item, trigge=trigger)
 
 
 @sync_to_async
 def get_answer_triggers(feed_id):
     return AnswerTriggers.objects.filter(pk=feed_id).first()
+
+
+@sync_to_async
+def select_all_triggers(user):
+    return AnswerTriggers.objects.filter(market__user=user)

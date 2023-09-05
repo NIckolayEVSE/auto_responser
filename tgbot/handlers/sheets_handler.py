@@ -9,10 +9,10 @@ from aiogram.utils.markdown import hbold
 from tgbot.config import Config
 from tgbot.keyboards.callback_data import EditModeGenerate, EditMode, MarketsTables
 from tgbot.keyboards.sheets_kb import add_market_kb, menu_sheet_kb, edit_sheet_mode_kb, markets_all_kb, cancel_add_url, \
-    markets_url
+    markets_url, type_feeds_kb, pagen_triggers
 from tgbot.misc.main_texts_and_funcs import mode_edit_text, validate_email, create_table
 from tgbot.misc.states import AddGmailState
-from tgbot.models.db_commands import select_client, select_market, create_gmail, select_markets
+from tgbot.models.db_commands import select_client, select_market, create_gmail, select_markets, select_all_triggers
 
 sheets_router = Router()
 
@@ -62,7 +62,7 @@ async def add_sheet(call: CallbackQuery, state: FSMContext):
     markets = user.wb_token.filter(use_sheet=True)
     text = 'Выберите магазин к которому хотите добавить таблицу'
     if not markets:
-        text = 'У вас пока нет таблиц  ❌'
+        text = 'У вас пока нет магазинов, которым можно добавить талицу ❗'
     await call.message.edit_text(text, reply_markup=await markets_all_kb(markets))
 
 
@@ -93,6 +93,7 @@ async def add_gmail(message: Message, state: FSMContext, config: Config):
     # loop = asyncio.get_running_loop()
     # with ProcessPoolExecutor() as pool:
     #     url = await loop.run_in_executor(pool, create_table, message.text, name, cfg)
+
     executor = ThreadPoolExecutor(max_workers=3)
     future = executor.submit(create_table, message.text, name, cfg)
     url = future.result()
@@ -117,3 +118,28 @@ async def my_sheets(call: CallbackQuery):
     if not markets:
         text = 'У вас пока нет таблиц  ❌'
     await call.message.edit_text(text, reply_markup=await markets_url(markets))
+
+
+@sheets_router.callback_query(F.data == 'wait_answer')
+async def wait_answer(call: CallbackQuery):
+    await call.message.edit_text("Выберите категорию отзывов, которую хотите просмотреть",
+                                 reply_markup=await type_feeds_kb())
+
+
+@sheets_router.callback_query(TriggerPagenCallback.filter())
+async def subcategory_items(call: CallbackQuery, callback_data: CategoryCallback, state: FSMContext):
+    """
+    Показывает подкатегорию товаров при выборе определенной категории
+    :param call:
+    :param callback_data:
+    :param state:
+    :return:
+    """
+    subcategories = await commands.get_subcategories(category_id=callback_data.id)
+    if subcategories:
+        await call.message.edit_text('Выберите подкатегорию товаров',
+                                     reply_markup=await pagen_triggers(subcategories, 0, 6))
+        await state.update_data(category_id=callback_data.id)
+    else:
+        await call.message.edit_text('Пока подкатегорий нет 😔',
+                                     reply_markup=await pagen_triggers(subcategories, 0, 6))

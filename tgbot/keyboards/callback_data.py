@@ -66,3 +66,12 @@ class TriggerCallback(CallbackData, prefix='trigger'):
 
 class AnswerCallback(CallbackData, prefix='answer'):
     pk: int
+
+
+class TriggerPagCallback(CallbackData, prefix='pag_trigger'):
+    pk: int
+
+
+class TriggerPagenCallback(CallbackData, prefix='pagen_trig'):
+    st: int
+    stop: int

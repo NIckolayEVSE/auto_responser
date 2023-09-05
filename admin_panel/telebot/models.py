@@ -169,6 +169,10 @@ class FeedbackAnswer(models.Model):
         default=False,
         verbose_name='Состояние ответа на отзыв'
     )
+    generated_mode = models.BooleanField(
+        default=True,
+        verbose_name='Режим генерации ответов GPT(T), Sheet(F)'
+    )
 
 
 class ManualGeneration(models.Model):
@@ -226,4 +230,13 @@ class AnswerTriggers(models.Model):
         max_length=150,
         verbose_name='Ссылка на товар',
         null=True
+    )
+    answered_feed = models.BooleanField(
+        default=False,
+        verbose_name='Состояние ответа на триггер'
+    )
+    trigger = models.CharField(
+        null=True,
+        max_length=20,
+        verbose_name='Триггер'
     )

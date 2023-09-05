@@ -80,7 +80,7 @@ async def adit_mode_messages(market):
               callback_data=EditModeMessages(id=market.pk, mode_mes='not_auto'))
     kb.button(text='📝 Ответ на отзывы без текста', callback_data=EmptyTextCallback(id=market.pk))
     kb.button(text='🗑 Удалить магазин', callback_data=DeleteMarket(id=market.pk))
-    kb.button(text='📑 Генерация по таблице', callback_data=EditModeGenerate(id=market.pk))
+    kb.button(text='📑 Режим генерации', callback_data=EditModeGenerate(id=market.pk))
     kb.button(text='🏢 Мои кабинеты', callback_data='my_cabinets')
     return kb.adjust(1).as_markup()
 

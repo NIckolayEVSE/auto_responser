@@ -80,7 +80,7 @@ async def scanning_answers_sheet(bot: Bot, config: Config):
             link_feed = "https://www.wildberries.ru/catalog/" + str(feed["productDetails"]["nmId"]) + '/detail.aspx'
             text = '\n'.join([f'{hbold("Оценка")}: {feed["productValuation"]} ⭐\n',
                               f'{hbold("Товар")}: {hlink(feed["productDetails"]["productName"], link_feed)}',
-                              f'{hbold("Текст отзыва")}\n{hcode(feedback.feedback)}',
+                              f'{hbold("Текст отзыва")}\n{hcode(feed["text"])}',
                               f'{hbold("Ссылка на отзыв")}: {link_wb}',
                               ])
 
@@ -91,13 +91,16 @@ async def scanning_answers_sheet(bot: Bot, config: Config):
                     text = f"Нашел отзыв с триггером <b>{is_trigger}</b>, но не нашел ответа"
                     await bot.send_message(chat_id=market.user.telegram_id, text=text)
                     continue
+
                 text = "\n".join([f'У вас новый отзыв с {hbold("Триггером")}',
                                   f'{is_trigger}\n', text,
                                   f"\nПредварительный ответ:\n{is_answer_trigger}"])
 
                 answer_triggers = await create_answer_triggers(market, feed['id'], feed['text'], is_answer_trigger,
                                                                feed["productValuation"],
-                                                               feed["productDetails"]["productName"], link_feed)
+                                                               feed["productDetails"]["productName"], link_feed,
+                                                               is_trigger
+                                                               )
 
                 try:
                     text_for_edit = "\n".join(
@@ -142,7 +145,7 @@ async def scanning_answers_sheet(bot: Bot, config: Config):
                     feed_to_kb = await create_answer_feedback(market, feed['productValuation'], feed['text'],
                                                               resul_feedback, feed['id'],
                                                               feed["productDetails"]["productName"],
-                                                              True, photo_link, link_feed
+                                                              True, photo_link, link_feed, False
                                                               )
                     text_for_edit = "\n".join(
                         [f"Не удаляйте эту строку (редактируйте только текст отзыва) feedback_id={feed['id']}\n",
@@ -157,7 +160,7 @@ async def scanning_answers_sheet(bot: Bot, config: Config):
 
                     await create_answer_feedback(market, feed['productValuation'], feed['text'],
                                                  resul_feedback, feed['id'], feed["productDetails"]["productName"],
-                                                 True, photo_link, link_feed
+                                                 True, photo_link, link_feed, False
                                                  )
 
             else:
@@ -217,7 +220,7 @@ async def send_answers_sheets(bot: Bot, config: Config):
     while True:
         logger.info('Start scan sheets')
         await scanning_answers_sheet(bot, config)
-        await asyncio.sleep(300)
+        await asyncio.sleep(600)
 
 
 async def main():

@@ -20,12 +20,10 @@ async def regexp_func(message: Message):
     pattern = r'@wb_auto_comment_bot Не удаляйте эту строку \(редактируйте только текст отзыва\) feedback_id=(.{20})\n\n(.*)'
     matches = re.findall(pattern, message.text, re.DOTALL)
     if not matches:
-        # await message.delete()
         return await message.answer("Ошибка при изменение отзыва 🆘")
     feedback_id = matches[0][0]
     check_feedback_id = await select_feedback(feedback_id)
     if not check_feedback_id:
-        # await message.delete()
         return await message.answer("Ошибка при изменение отзыва 🆘")
     remaining_text = matches[0][1].strip()
     feedback = await select_feedback(feedback_id)
