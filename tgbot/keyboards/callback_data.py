@@ -75,3 +75,12 @@ class TriggerPagCallback(CallbackData, prefix='pag_trigger'):
 class TriggerPagenCallback(CallbackData, prefix='pagen_trig'):
     st: int
     stop: int
+
+
+class AnswerSheet(CallbackData, prefix='st_ans_pagen'):
+    pk: int
+
+
+class AnswerSheetPagen(CallbackData, prefix='pagen_answers'):
+    st: int
+    stop: int

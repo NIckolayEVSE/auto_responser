@@ -9,14 +9,14 @@ from loguru import logger
 from tgbot.keyboards.callback_data import TriggerCallback
 from tgbot.keyboards.triggers_kb import trigger_kb
 from tgbot.misc.api_wb_methods import ApiClient
-from tgbot.models.db_commands import get_answer_triggers
+from tgbot.models.db_commands import get_answer_trigger
 
 trigger_router = Router()
 
 
 @trigger_router.callback_query(TriggerCallback.filter())
 async def send_answer_tr(call: CallbackQuery, callback_data: TriggerCallback):
-    trigger = await get_answer_triggers(callback_data.id)
+    trigger = await get_answer_trigger(callback_data.id)
     await ApiClient.send_feedback(trigger.market.token, trigger.feedback_id, trigger.answer)
     trigger.answered_feed = True
     trigger.save()
@@ -37,7 +37,7 @@ async def regexp_func(message: Message):
     if not matches:
         return await message.answer("Ошибка при изменение отзыва триггера 🆘")
     feedback_id = matches[0][0]
-    check_trigger_id = await get_answer_triggers(feedback_id)
+    check_trigger_id = await get_answer_trigger(feedback_id)
     if not check_trigger_id:
         return await message.answer("Ошибка при изменение отзыва триггера 🆘")
     remaining_text = matches[0][1].strip()

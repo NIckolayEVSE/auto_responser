@@ -1,18 +1,23 @@
 import asyncio
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
 from aiogram import Router, F
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from aiogram.utils.markdown import hbold
+from aiogram.utils.markdown import hbold, hlink, hcode
 
 from tgbot.config import Config
-from tgbot.keyboards.callback_data import EditModeGenerate, EditMode, MarketsTables
+from tgbot.keyboards.callback_data import EditModeGenerate, EditMode, MarketsTables, TriggerPagenCallback, \
+    TriggerPagCallback, AnswerSheetPagen, AnswerSheet
+from tgbot.keyboards.on_check_feed_kb import on_check_kb
 from tgbot.keyboards.sheets_kb import add_market_kb, menu_sheet_kb, edit_sheet_mode_kb, markets_all_kb, cancel_add_url, \
-    markets_url, type_feeds_kb, pagen_triggers
+    markets_url, type_feeds_kb, pagen_triggers, back_triggers, pagen_answers_sheet
+from tgbot.keyboards.triggers_kb import trigger_kb
 from tgbot.misc.main_texts_and_funcs import mode_edit_text, validate_email, create_table
 from tgbot.misc.states import AddGmailState
-from tgbot.models.db_commands import select_client, select_market, create_gmail, select_markets, select_all_triggers
+from tgbot.models.db_commands import select_client, select_market, create_gmail, select_markets, select_all_triggers, \
+    get_answer_trigger, select_feedback_sheet
 
 sheets_router = Router()
 
@@ -126,20 +131,81 @@ async def wait_answer(call: CallbackQuery):
                                  reply_markup=await type_feeds_kb())
 
 
+@sheets_router.callback_query(F.data == 'cat_trig')
+async def category_triggers(call: CallbackQuery):
+    triggers = await select_all_triggers(await select_client(call.message.chat.id))
+    if not triggers:
+        return await call.message.edit_text('У вас нет неотвеченных отзывов с триггерами',
+                                            reply_markup=await back_triggers())
+    await call.message.edit_text('Выберите неотвеченный отзыв с триггером',
+                                 reply_markup=await pagen_triggers(triggers, 0, 6))
+
+
 @sheets_router.callback_query(TriggerPagenCallback.filter())
-async def subcategory_items(call: CallbackQuery, callback_data: CategoryCallback, state: FSMContext):
-    """
-    Показывает подкатегорию товаров при выборе определенной категории
-    :param call:
-    :param callback_data:
-    :param state:
-    :return:
-    """
-    subcategories = await commands.get_subcategories(category_id=callback_data.id)
-    if subcategories:
-        await call.message.edit_text('Выберите подкатегорию товаров',
-                                     reply_markup=await pagen_triggers(subcategories, 0, 6))
-        await state.update_data(category_id=callback_data.id)
-    else:
-        await call.message.edit_text('Пока подкатегорий нет 😔',
-                                     reply_markup=await pagen_triggers(subcategories, 0, 6))
+async def pagination_triggers(call: CallbackQuery, callback_data: TriggerPagenCallback):
+    triggers = await select_all_triggers(await select_client(call.message.chat.id))
+    try:
+        await call.message.edit_text('Выберите неотвеченный отзыв с триггером',
+                                     reply_markup=await pagen_triggers(triggers, callback_data.st, callback_data.stop))
+    except TelegramBadRequest as _err:
+        # print(_err)
+        await call.answer()
+
+
+@sheets_router.callback_query(TriggerPagCallback.filter())
+async def details_trigger(call: CallbackQuery, callback_data: TriggerPagCallback):
+    trigger = await get_answer_trigger(callback_data.pk)
+    text = '\n'.join([f'Ответ с {hbold("Триггером")}',
+                      f'{trigger.trigger}\n',
+                      f'{hbold("Оценка")}: {trigger.rating} ⭐\n',
+                      f'{hbold("Товар")}: {hlink(trigger.name_item, trigger.link_item)}',
+                      f'{hbold("Текст отзыва")}\n{hcode(trigger.text)}',
+                      f'{hbold("Ссылка на отзыв")}: {trigger.link_feed}\n',
+                      f"\n{hbold('Предварительный ответ')}:\n{trigger.answer}"
+                      ])
+    text_for_edit = "\n".join(
+        [f"tr Не удаляйте эту строку (редактируйте только текст отзыва) feedback_id={trigger.feedback_id}\n",
+         f'{trigger.answer}']
+    )
+    await call.message.edit_text(text=text, reply_markup=await trigger_kb(trigger, text_for_edit, 'back'))
+
+
+@sheets_router.callback_query(F.data == 'no_trig')
+async def feedback_without_triggers(call: CallbackQuery):
+    answers = await select_feedback_sheet(await select_client(call.message.chat.id))
+    if not answers:
+        return await call.message.edit_text('У вас нет неотвеченных отзывов без триггеров',
+                                            reply_markup=await back_triggers())
+    await call.message.edit_text('Выберите неотвеченный отзыв с триггером',
+                                 reply_markup=await pagen_answers_sheet(answers, 0, 6))
+
+
+@sheets_router.callback_query(AnswerSheetPagen.filter())
+async def pagination_triggers(call: CallbackQuery, callback_data: AnswerSheetPagen):
+    answers = await select_feedback_sheet(await select_client(call.message.chat.id))
+    try:
+        await call.message.edit_text('Выберите неотвеченный отзыв',
+                                     reply_markup=await pagen_answers_sheet(answers, callback_data.st,
+                                                                            callback_data.stop))
+    except TelegramBadRequest as _err:
+        # print(_err)
+        await call.answer()
+
+
+@sheets_router.callback_query(AnswerSheet.filter())
+async def details_trigger(call: CallbackQuery, callback_data: AnswerSheet):
+    answer = await get_answer_trigger(callback_data.pk)
+    text = "\n".join([f'Отзыв\n', f'{hbold("Магазин")}: {answer.market.name_market}\n',
+                      f'{hbold("Оценка")}: {answer.rating} ⭐',
+                      f'{hbold("Товар")}: {hlink(answer.name_item, answer.link_feedback)}\n',
+                      f'{hbold("Текст отзыва")}:',
+                      f'{hcode(answer.feedback)}'
+                      f'{hbold("Ответ")}:', f'{answer.answer}'
+                      ])
+
+    text_for_edit = "\n".join([
+        f"Не удаляйте эту строку (редактируйте только текст отзыва) feedback_id={answer.feedback_id}\n",
+        f"{answer.answer}"
+    ])
+    await call.message.edit_text(text=text, reply_markup=await on_check_kb(answer.feedback_id, text_for_edit,
+                                                                           answer.link_photos, 'not_gen', 'back'))

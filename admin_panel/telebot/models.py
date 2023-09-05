@@ -173,6 +173,11 @@ class FeedbackAnswer(models.Model):
         default=True,
         verbose_name='Режим генерации ответов GPT(T), Sheet(F)'
     )
+    created_at = models.DateTimeField(
+        verbose_name='Дата создания',
+        null=True,
+        auto_now_add=True
+    )
 
 
 class ManualGeneration(models.Model):
@@ -208,6 +213,7 @@ class AnswerTriggers(models.Model):
         verbose_name='Триггеры магазина',
         related_name='triggers'
     )
+
     feedback_id = models.CharField(
         max_length=100,
         verbose_name='Id отзыва'
@@ -239,4 +245,14 @@ class AnswerTriggers(models.Model):
         null=True,
         max_length=20,
         verbose_name='Триггер'
+    )
+    created = models.DateTimeField(
+        verbose_name='Дата создания',
+        null=True,
+        auto_now_add=True
+    )
+    link_feed = models.CharField(
+        max_length=150,
+        verbose_name='Ссылка на отзыв',
+        null=True
     )

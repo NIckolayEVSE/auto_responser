@@ -71,6 +71,11 @@ def select_feedback(feedback_id):
 
 
 @sync_to_async
+def select_feedback_sheet(user):
+    return FeedbackAnswer.objects.filter(market__user=user, generated_mode=False)
+
+
+@sync_to_async
 def create_manual_feed(user: Client, feed):
     return ManualGeneration.objects.create(user=user, feedback=feed)
 
@@ -96,16 +101,17 @@ def select_markets(user):
 
 
 @sync_to_async
-def create_answer_triggers(market, feedback_id, text, answer, rating, name_item, link_item, trigger):
+def create_answer_triggers(market, feedback_id, text, answer, rating, name_item, link_item, trigger, link_feed):
     return AnswerTriggers.objects.create(market=market, feedback_id=feedback_id, text=text, answer=answer,
-                                         rating=rating, name_item=name_item, link_item=link_item, trigge=trigger)
+                                         rating=rating, name_item=name_item, link_item=link_item, trigge=trigger,
+                                         link_feed=link_feed)
 
 
 @sync_to_async
-def get_answer_triggers(feed_id):
+def get_answer_trigger(feed_id):
     return AnswerTriggers.objects.filter(pk=feed_id).first()
 
 
 @sync_to_async
 def select_all_triggers(user):
-    return AnswerTriggers.objects.filter(market__user=user)
+    return AnswerTriggers.objects.filter(market__user=user, answered_feed=False)
