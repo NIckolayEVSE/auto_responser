@@ -1,5 +1,5 @@
 import asyncio
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
@@ -47,9 +47,9 @@ async def edit_mode(call: CallbackQuery, callback_data: EditModeGenerate):
 async def edit_mode_sheet(call: CallbackQuery, callback_data: EditMode):
     market = await select_market(callback_data.id)
     if callback_data.mode == 'use_sheet':
-        market.user_sheet = True
+        market.use_sheet = True
     elif callback_data.mode == 'not_use_sheet':
-        market.user_sheet = False
+        market.use_sheet = False
     market.save()
     await call.message.edit_text(text=mode_edit_text(market),
                                  reply_markup=await edit_sheet_mode_kb(market))
@@ -60,8 +60,10 @@ async def add_sheet(call: CallbackQuery, state: FSMContext):
     await state.clear()
     user = await select_client(call.message.chat.id)
     markets = user.wb_token.filter(use_sheet=True)
-    await call.message.edit_text('Выберите магазин к которому хотите добавить таблицу',
-                                 reply_markup=await markets_all_kb(markets))
+    text = 'Выберите магазин к которому хотите добавить таблицу'
+    if not markets:
+        text = 'У вас пока нет таблиц  ❌'
+    await call.message.edit_text(text, reply_markup=await markets_all_kb(markets))
 
 
 @sheets_router.callback_query(MarketsTables.filter())
@@ -85,10 +87,15 @@ async def add_gmail(message: Message, state: FSMContext, config: Config):
     market = await select_market(data.get("market_pk"))
     message_edit = await message.answer('Подождите, идет создание таблицы 🕘')
 
-    name = f'Автоответчик Магазин:{market.name_market}'
-    loop = asyncio.get_running_loop()
-    with ProcessPoolExecutor() as pool:
-        url = await loop.run_in_executor(pool, create_table, message.text, name, config)
+    cfg = config.misc.google_table
+    name = f'Автоответчик Магазин: {market.name_market}'
+
+    # loop = asyncio.get_running_loop()
+    # with ProcessPoolExecutor() as pool:
+    #     url = await loop.run_in_executor(pool, create_table, message.text, name, cfg)
+    executor = ThreadPoolExecutor(max_workers=3)
+    future = executor.submit(create_table, message.text, name, cfg)
+    url = future.result()
 
     await create_gmail(market, url)
 
@@ -106,5 +113,7 @@ async def add_gmail(message: Message, state: FSMContext, config: Config):
 async def my_sheets(call: CallbackQuery):
     user = await select_client(call.message.chat.id)
     markets = await select_markets(user)
-    await call.message.edit_text('Выберите магазин, чтобы прейти по ссылке на таблицу',
-                                 reply_markup=await markets_url(markets))
+    text = 'Выберите магазин, чтобы прейти по ссылке на таблицу'
+    if not markets:
+        text = 'У вас пока нет таблиц  ❌'
+    await call.message.edit_text(text, reply_markup=await markets_url(markets))

@@ -195,3 +195,35 @@ class GmailMarkets(models.Model):
         max_length=100,
         verbose_name='Ссылка на таблицу магазина'
     )
+
+
+class AnswerTriggers(models.Model):
+    market = models.ForeignKey(
+        WbToken,
+        on_delete=models.CASCADE,
+        verbose_name='Триггеры магазина',
+        related_name='triggers'
+    )
+    feedback_id = models.CharField(
+        max_length=100,
+        verbose_name='Id отзыва'
+    )
+    text = models.TextField(
+        verbose_name='Текст отзыва'
+    )
+    answer = models.TextField(
+        verbose_name='Ответы'
+    )
+    rating = models.IntegerField(
+        verbose_name='Рейтинг'
+    )
+    name_item = models.CharField(
+        max_length=100,
+        verbose_name='Название товара',
+        null=True
+    )
+    link_item = models.CharField(
+        max_length=150,
+        verbose_name='Ссылка на товар',
+        null=True
+    )

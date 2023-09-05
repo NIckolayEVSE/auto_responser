@@ -37,7 +37,7 @@ async def scanning_answers(bot: Bot, config: Config):
         feedback = await ApiClient.get_feedbacks(market.token)
 
         if not feedback:
-            logger.info(f'Ошибка запроса клиента {market.user.username}')
+            logger.info(f'Ошибка запроса отзывов клиента {market.user.username}')
             continue
 
         if feedback and not feedback['data']['feedbacks']:

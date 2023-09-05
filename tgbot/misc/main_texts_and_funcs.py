@@ -18,7 +18,7 @@ def set_market_autosend_state(market, state):
 
 
 def create_table(email_acc, name, config):
-    url = config.misc.google_table.create_sheet(
+    url = config.create_sheet(
         email_acc=email_acc,
         name=name
     )

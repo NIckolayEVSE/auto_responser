@@ -58,3 +58,11 @@ class EditMode(CallbackData, prefix='edit_mode'):
 
 class MarketsTables(CallbackData, prefix='market_tables'):
     id: int
+
+
+class TriggerCallback(CallbackData, prefix='trigger'):
+    id: int
+
+
+class AnswerCallback(CallbackData, prefix='answer'):
+    pk: int

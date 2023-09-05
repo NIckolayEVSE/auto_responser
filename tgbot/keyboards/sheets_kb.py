@@ -25,14 +25,14 @@ async def edit_sheet_mode_kb(market):
         kb.button(text='Исп. таблицы', callback_data=EditMode(id=market.pk, mode='use_sheet'))
     else:
         kb.button(text='Исп. GPT', callback_data=EditMode(id=market.pk, mode='not_use_sheet'))
-    kb.button(text='🔙 Назад', callback_data='table_sheet')
+    kb.button(text='🔙 Назад', callback_data='my_office')
     return kb.adjust(1).as_markup()
 
 
 async def markets_all_kb(markets):
     kb = InlineKeyboardBuilder()
     for market in markets:
-        if market.use_sheet and market.gmail_markets.first():
+        if not market.gmail_markets.first():
             kb.button(text=market.name_market, callback_data=MarketsTables(id=market.pk))
     kb.button(text='🔙 Назад', callback_data='table_sheet')
     return kb.adjust(1).as_markup()

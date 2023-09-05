@@ -65,11 +65,15 @@ async def main():
     from tgbot.handlers.echo import echo_router
     from tgbot.handlers.admin import admin_router
 
+    from tgbot.handlers.answer_to_trigger import trigger_router
+    from tgbot.handlers.sheets_handler import sheets_router
     for router in [
         user_router,
         my_office_router,
         time_router,
+        sheets_router,
         # echo_router,
+        trigger_router,
         inline_router,
         admin_router,
 

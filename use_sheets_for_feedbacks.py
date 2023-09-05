@@ -4,7 +4,6 @@ import os
 import random
 import re
 
-
 from aiogram import Bot
 from aiogram.exceptions import TelegramForbiddenError, TelegramBadRequest
 from aiogram.utils.markdown import hcode, hlink, hbold
@@ -12,11 +11,11 @@ from dotenv import load_dotenv
 from environs import Env
 from loguru import logger
 
+from tgbot.keyboards.on_check_feed_kb import on_check_kb
+from tgbot.misc.api_wb_methods import ApiClient
 from tgbot.config import load_config, Config
-from tgbot.keyboards.inline import answer_to_feed_kb
-from tgbot.keyboards.triggers_kb import trigger_kb
 
-from tgbot.models.db_commands import select_all_clients, create_answer_triggers, create_answer_feedback
+from tgbot.keyboards.triggers_kb import trigger_kb
 
 load_dotenv()
 
@@ -32,82 +31,89 @@ def setup_django():
 
 
 async def scanning_answers_sheet(bot: Bot, config: Config):
-    users = await select_all_clients()
+    from tgbot.models.db_commands import create_answer_triggers, create_answer_feedback, select_all_markets
+
+    markets = await select_all_markets()
 
     sheet = config.misc.google_table
-    for user in users:
-        if not user.on_scan:
+    for market in markets:
+        if not market.use_sheet:
             continue
 
-        is_sub = await check_subscribed(user.telegram_id, "autoresponder")
-        if not is_sub:
-            logger.info(f'У пользователя {user.username} ID: {user.telegram_id} нет подписки')
-            continue
-
-        profile = await get_user_profile(user.telegram_id)
-        if not profile['standard_token']:
-            logger.info(f'У пользователя {user.username} ID: {user.telegram_id} нет токена')
-            continue
-        else:
-            feedback = await get_feedbacks(profile['standard_token'])
+        feedback = await ApiClient.get_feedbacks(market.token)
 
         if not feedback:
-            logger.info(f'Отзывов для пользователя {user.username} ID: {user.telegram_id} не найдено')
+            logger.info(f'Ошибка запроса отзывов клиента {market.user.username}')
             continue
-        logger.info(f'Найдено отзывов: {len(feedback["data"]["feedbacks"])} Для пользователя: {user.username}')
+
+        if feedback and not feedback['data']['feedbacks']:
+            logger.info(f'Отзывов для пользователя {market.user.username} ID: {market.user.telegram_id} не найдено')
+            continue
+
         try:
             feedbacks = feedback['data']['feedbacks']
         except KeyError:
             continue
 
-        url = user.url
+        url = market.gmail_markets.first().url if market.gmail_markets.first() else False
         if not url:
             continue
 
         ws = sheet.open_sheet(url)
         if not ws:
-            await bot.send_message(chat_id=user.telegram_id, text='У вас не верный адрес таблицы.\n\n'
-                                                                  'Измените его')
+            await bot.send_message(chat_id=market.user.telegram_id, text='У вас не верный url адрес таблицы.\n\n'
+                                                                         'Измените его')
             continue
         triggers = await get_triggers(ws)
-
+        count = 0
         for feed in feedbacks:
-
-            is_trigger = await process_text(feed['text'].lower(), triggers, 'trigger')
-            is_answer_trigger = await process_text(feed['text'].lower(), triggers, 'value')
+            is_trigger, is_answer_trigger = await asyncio.gather(
+                process_text(feed['text'].lower(), triggers, 'trigger'),
+                process_text(feed['text'].lower(), triggers, 'value')
+            )
             link_wb = "".join(["https://www.wildberries.ru/catalog/",
                                str(feed["productDetails"]["nmId"]),
                                "/feedbacks?imtId=",
                                str(feed["productDetails"]["imtId"]),
                                "#",
                                feed["id"]])
-
-            text = f'{feed["productValuation"]} ⭐\n\n' \
-                   f'Текст отзыва:\n\n' \
-                   f'{hcode(feed["text"])}\n\n' \
-                   f'{hlink("Ссылка на отзыв", link_wb)}'
+            link_feed = "https://www.wildberries.ru/catalog/" + str(feed["productDetails"]["nmId"]) + '/detail.aspx'
+            text = '\n'.join([f'{hbold("Оценка")}: {feed["productValuation"]} ⭐\n',
+                              f'{hbold("Товар")}: {hlink(feed["productDetails"]["productName"], link_feed)}',
+                              f'{hbold("Текст отзыва")}\n{hcode(feedback.feedback)}',
+                              f'{hbold("Ссылка на отзыв")}: {link_wb}',
+                              ])
 
             if is_trigger:
-                if user.triggers_answer.filter(feedback_id=feed['id']):
+                if market.triggers.filter(feedback_id=feed['id']):
                     continue
                 if not is_answer_trigger:
                     text = f"Нашел отзыв с триггером <b>{is_trigger}</b>, но не нашел ответа"
-                    await bot.send_message(chat_id=user.telegram_id, text=text)
+                    await bot.send_message(chat_id=market.user.telegram_id, text=text)
                     continue
-                text = f'У вас новый отзыв с {hbold("Триггером")}\n\n' \
-                       f'{is_trigger}\n\n' + text \
-                       + f"\n\nПредварительный ответ:\n\n{is_answer_trigger}"
-                answer_triggers = await create_answer_triggers(user, feed['id'], feed['text'], is_answer_trigger)
+                text = "\n".join([f'У вас новый отзыв с {hbold("Триггером")}',
+                                  f'{is_trigger}\n', text,
+                                  f"\nПредварительный ответ:\n{is_answer_trigger}"])
+
+                answer_triggers = await create_answer_triggers(market, feed['id'], feed['text'], is_answer_trigger,
+                                                               feed["productValuation"],
+                                                               feed["productDetails"]["productName"], link_feed)
+
                 try:
-                    await bot.send_message(chat_id=user.telegram_id, text=text,
-                                           reply_markup=await trigger_kb(answer_triggers))
-                    logger.info(f'Сообщение с триггером отправлено пользователю {user.username} ID: {user.telegram_id}')
+                    text_for_edit = "\n".join(
+                        [f"tr Не удаляйте эту строку (редактируйте только текст отзыва) feedback_id={feed['id']}\n",
+                         f'{is_answer_trigger}']
+                    )
+                    await bot.send_message(chat_id=market.user.telegram_id, text=text,
+                                           reply_markup=await trigger_kb(answer_triggers, text_for_edit))
+                    logger.info(
+                        f'Сообщение с триггером отправлено пользователю {market.user.username} ID: {market.user.telegram_id}')
                     await asyncio.sleep(0.1)
                     continue
                 except (TelegramForbiddenError, TelegramBadRequest):
                     continue
 
-            if user.feedback_answer.filter(feedback_id=feed['id']):
+            if market.feedback_answer.filter(feedback_id=feed['id']):
                 continue
 
             recommendations = await take_recommendations(ws, feed["productDetails"]["nmId"])
@@ -117,36 +123,61 @@ async def scanning_answers_sheet(bot: Bot, config: Config):
                 resul_feedback = await generate_answer(ws, feed['productValuation'])
 
             if resul_feedback:
-                if feed['productValuation'] in (1, 2, 3):
-                    text = f'Новый ответ на отзыв 🆕\n\n' + text + \
-                           f"\n\nПредварительный ответ:\n\n{resul_feedback}"
 
-                    feed_to_kb = await create_answer_feedback(user, feed['productValuation'], feed['text'],
-                                                              resul_feedback, feed['id'])
-                    return await bot.send_message(chat_id=user.telegram_id, text=text,
-                                                  reply_markup=await answer_to_feed_kb(feed_to_kb))
+                photo_link = None
+                if feed["photoLinks"]:
+                    photo_link = ",".join([link["fullSize"] for link in feed["photoLinks"]])
+                count += 1
+
+                if feed['productValuation'] in (1, 2, 3):
+                    text = "\n".join(
+                        [
+                            f'Новый ответ на отзыв 🆕\n',
+                            text,
+                            f"\n{hbold('Предварительный ответ')}:',"
+                            f"f'{resul_feedback}"
+                        ]
+                    )
+
+                    feed_to_kb = await create_answer_feedback(market, feed['productValuation'], feed['text'],
+                                                              resul_feedback, feed['id'],
+                                                              feed["productDetails"]["productName"],
+                                                              True, photo_link, link_feed
+                                                              )
+                    text_for_edit = "\n".join(
+                        [f"Не удаляйте эту строку (редактируйте только текст отзыва) feedback_id={feed['id']}\n",
+                         f'{resul_feedback}']
+                    )
+                    return await bot.send_message(chat_id=market.user.telegram_id, text=text,
+                                                  reply_markup=await on_check_kb(feed_to_kb, text_for_edit, photo_link,
+                                                                                 'not_gen'))
 
                 else:
-                    await send_feedback(profile['standard_token'], feed['id'], resul_feedback)
+                    await ApiClient.send_feedback(market.token, feed['id'], resul_feedback)
 
-                    await create_answer_feedback(user, feed['productValuation'], feed['text'],
-                                                 resul_feedback, feed['id'])
+                    await create_answer_feedback(market, feed['productValuation'], feed['text'],
+                                                 resul_feedback, feed['id'], feed["productDetails"]["productName"],
+                                                 True, photo_link, link_feed
+                                                 )
 
             else:
-                await bot.send_message(chat_id=user.telegram_id, text=f'У вас не заполнены ответы для '
-                                                                      f'{feed["productValuation"]} звезд')
-                logger.info(f'Для пользователя {user.username} ID: {user.telegram_id} не заполнены ответы')
+                await bot.send_message(chat_id=market.user.telegram_id, text=f'У вас не заполнены ответы для '
+                                                                             f'{feed["productValuation"]} звезд')
+                logger.info(
+                    f'Для пользователя {market.user.username} ID: {market.user.telegram_id} не заполнены ответы')
                 continue
             try:
-                text = f'Ответ на отзыв успешно отправлен\n\n' + text + f"\n\nПредварительный ответ:\n\n{resul_feedback}"
-                await bot.send_message(chat_id=user.telegram_id, text=text)
-                logger.info(f'Ответ на отзыв успешно отправлен для пользователя {user.username} ID: {user.telegram_id}')
+                text = "\n".join([f'Ответ на отзыв успешно отправлен ✅\n', text,
+                                  f"\n{hbold('Предварительный ответ')}:\n{resul_feedback}"])
+                await bot.send_message(chat_id=market.user.telegram_id, text=text)
+                logger.info(
+                    f'Ответ на отзыв успешно отправлен для пользователя {market.user.username} ID: {market.user.telegram_id}')
                 await asyncio.sleep(0.1)
             except (TelegramForbiddenError, TelegramBadRequest):
                 continue
 
 
-def process_text(text: str, dict_triggers: dict, output: str):
+async def process_text(text: str, dict_triggers: dict, output: str):
     sentences = re.split('[.!?]\s', text.lower())
     for sentence in sentences:
         for trigger, value in dict_triggers.items():
@@ -184,7 +215,7 @@ async def take_recommendations(ws, article: int):
 
 async def send_answers_sheets(bot: Bot, config: Config):
     while True:
-        logger.info('Start scan')
+        logger.info('Start scan sheets')
         await scanning_answers_sheet(bot, config)
         await asyncio.sleep(300)
 

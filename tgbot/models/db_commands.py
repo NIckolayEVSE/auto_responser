@@ -3,7 +3,8 @@ import datetime
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
 
-from admin_panel.telebot.models import Client, WbToken, FeedbackAnswer, ManualGeneration, IncorrectWbToken, GmailMarkets
+from admin_panel.telebot.models import Client, WbToken, FeedbackAnswer, ManualGeneration, IncorrectWbToken, \
+    GmailMarkets, AnswerTriggers
 
 
 @sync_to_async()
@@ -92,3 +93,12 @@ def select_markets(user):
     return GmailMarkets.objects.filter(market__user=user)
 
 
+@sync_to_async
+def create_answer_triggers(market, feedback_id, text, answer, rating, name_item, link_item):
+    return AnswerTriggers.objects.create(market=market, feedback_id=feedback_id, text=text, answer=answer,
+                                         rating=rating, name_item=name_item, link_item=link_item)
+
+
+@sync_to_async
+def get_answer_triggers(feed_id):
+    return AnswerTriggers.objects.filter(pk=feed_id).first()
