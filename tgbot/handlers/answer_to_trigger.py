@@ -9,14 +9,14 @@ from loguru import logger
 from tgbot.keyboards.callback_data import TriggerCallback
 from tgbot.keyboards.triggers_kb import trigger_kb
 from tgbot.misc.api_wb_methods import ApiClient
-from tgbot.models.db_commands import get_answer_trigger
+from tgbot.models.db_commands import get_answer_trigger, get_answer_trigger_pk
 
 trigger_router = Router()
 
 
 @trigger_router.callback_query(TriggerCallback.filter())
 async def send_answer_tr(call: CallbackQuery, callback_data: TriggerCallback):
-    trigger = await get_answer_trigger(callback_data.id)
+    trigger = await get_answer_trigger_pk(callback_data.id)
     await ApiClient.send_feedback(trigger.market.token, trigger.feedback_id, trigger.answer)
     trigger.answered_feed = True
     trigger.save()

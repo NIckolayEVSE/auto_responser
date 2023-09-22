@@ -68,6 +68,7 @@ async def main():
     from tgbot.handlers.answer_to_trigger import trigger_router
     from tgbot.handlers.sheets_handler import sheets_router
     for router in [
+        admin_router,
         user_router,
         my_office_router,
         time_router,
@@ -75,7 +76,6 @@ async def main():
         # echo_router,
         trigger_router,
         inline_router,
-        admin_router,
 
     ]:
         dp.include_router(router)

@@ -7,14 +7,17 @@ from aiogram.utils.markdown import hbold
 
 from tgbot.config import Config
 from tgbot.keyboards.callback_data import FirstMarket, EditModeMessages, DeleteMarket, EmptyTextCallback, \
-    EditEmptyTextCallback
+    EditEmptyTextCallback, OnScanCallback
 from tgbot.keyboards.inline import myself_office_kb, add_office_kb, cancel_add_token, check_setting_market, \
     adit_mode_messages, delete_market_kb, answer_to_empty_kb
+from tgbot.keyboards.on_check_feed_kb import on_check_kb
+from tgbot.keyboards.sheets_kb import pagen_answers_sheet
 from tgbot.misc.api_wb_methods import ApiClient
 from tgbot.misc.main_texts_and_funcs import set_market_autosend_state, set_market_stars, validate_list_stars, \
     empty_text, send_error
 from tgbot.misc.states import EnterTokenState, EditStarsList
-from tgbot.models.db_commands import select_client, create_name_market_wb, select_market, select_token
+from tgbot.models.db_commands import select_client, create_name_market_wb, select_market, select_token, \
+    select_feedback_sheet
 
 my_office_router = Router()
 
@@ -71,7 +74,7 @@ async def enter_token_func(message: Message, state: FSMContext, config: Config, 
         user = await select_client(message.from_user.id)
         tokens = user.inc_wb_token.all().count()
         text = "\n".join([
-            f'Новый пользователь у которого не верный токен USERNAME: {user.username} ID: {user.telegram_id}\n',
+            f'У нового пользователя не верный токен USERNAME: {user.username} ID: {user.telegram_id}\n',
             'Всего не верных токенов {}'.format(tokens)
         ])
         await send_error(bot, config, error_text=text)
@@ -109,6 +112,9 @@ async def check_first_market_func(event: CallbackQuery | Message, callback_data:
                       f'3. ⭐️⭐️⭐️ - {"Автоматический" if market.auto_send_star_3 else "Полуавтоматический"}',
                       f'4. ⭐️⭐️⭐️⭐️ - {"Автоматический" if market.auto_send_star_4 else "Полуавтоматический"}',
                       f'5. ⭐️⭐️⭐️⭐️⭐️ - {"Автоматический" if market.auto_send_star_5 else "Полуавтоматический"}\n',
+                      f'При нажатии на кнопки {hbold("⏸ Отключить сканирование")} или {hbold("▶️ Включить сканирование")}'
+                      f' вы можете включать или отключать сканирование для данного магазина. По умолчанию сканирование '
+                      f'{hbold("Включено")}.\n',
                       f'Если хотите изменить режим для одной или нескольких оценок — введите их через запятую. '
                       f'Например: 1, 2, 3'])
 
@@ -195,3 +201,26 @@ async def choose_mode_empty_text(call: CallbackQuery, callback_data: EditEmptyTe
 async def back_to_call(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await check_first_market_func(call, FirstMarket(id=data.get('id_empty_market')), state=state)
+
+
+@my_office_router.callback_query(F.data == 'wait_answer_gpt')
+async def wait_answer_gpt(call: CallbackQuery):
+    feedbacks = await select_feedback_sheet(await select_client(call.message.chat.id), True)
+    if not feedbacks:
+        return await call.message.edit_text('У вас нет неотвеченных отзывов',
+                                            reply_markup=await cancel_add_token('🔙 Назад'))
+    text = f'В данном меню вы можете просмотреть неотвеченные отзывы, сгенерированные ' \
+           f'с использованием {hbold("GPT генерации")}\n\nВыберите неотвеченный отзыв'
+    await call.message.edit_text(text, reply_markup=await pagen_answers_sheet(feedbacks, 0, 6, mode=True,
+                                                                              back_call='my_office'))
+
+
+@my_office_router.callback_query(OnScanCallback.filter())
+async def on_scan(call: CallbackQuery, callback_data: OnScanCallback, state: FSMContext):
+    market = await select_market(callback_data.pk)
+    if callback_data.mode:
+        market.on_scan = True
+    else:
+        market.on_scan = False
+    market.save()
+    await check_first_market_func(call, FirstMarket(id=callback_data.pk), state)

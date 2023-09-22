@@ -2,6 +2,7 @@ import re
 
 from aiogram import Router, F, Bot
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto
 from aiogram.utils.markdown import hcode, hlink, hbold
 
@@ -16,17 +17,16 @@ inline_router = Router()
 
 
 @inline_router.message(F.text)
-async def regexp_func(message: Message):
+async def regexp_func(message: Message, state: FSMContext):
     pattern = r'@wb_auto_comment_bot Не удаляйте эту строку \(редактируйте только текст отзыва\) feedback_id=(.{20})\n\n(.*)'
     matches = re.findall(pattern, message.text, re.DOTALL)
     if not matches:
         return await message.answer("Ошибка при изменение отзыва 🆘")
     feedback_id = matches[0][0]
-    check_feedback_id = await select_feedback(feedback_id)
-    if not check_feedback_id:
+    feedback = await select_feedback(feedback_id)
+    if not feedback:
         return await message.answer("Ошибка при изменение отзыва 🆘")
     remaining_text = matches[0][1].strip()
-    feedback = await select_feedback(feedback_id)
     feedback.answer = remaining_text
     feedback.save()
     text_for_edit = f"Не удаляйте эту строку (редактируйте только текст отзыва) feedback_id={feedback.feedback_id}\n\n" \
@@ -42,8 +42,12 @@ async def regexp_func(message: Message):
         await message.delete()
     except TelegramBadRequest:
         pass
+    data = await state.get_data()
+    gen = data.get('gen', 'gen')
+    back = data.get('back')
     await message.answer(text=result_text,
-                         reply_markup=await on_check_kb(feedback.feedback_id, text_for_edit, feedback.link_photos))
+                         reply_markup=await on_check_kb(feedback.feedback_id, text_for_edit, feedback.link_photos,
+                                                        gen=gen, back=back))
 
 
 @inline_router.callback_query(AnswerFeedback.filter())

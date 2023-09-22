@@ -25,10 +25,10 @@ async def menu_sheet_kb():
 async def edit_sheet_mode_kb(market):
     kb = InlineKeyboardBuilder()
     if not market.use_sheet:
-        kb.button(text='Исп. таблицы', callback_data=EditMode(id=market.pk, mode='use_sheet'))
+        kb.button(text='🗂 Таблицы', callback_data=EditMode(id=market.pk, mode='use_sheet'))
     else:
-        kb.button(text='Исп. GPT', callback_data=EditMode(id=market.pk, mode='not_use_sheet'))
-    kb.button(text='🔙 Назад', callback_data='my_office')
+        kb.button(text='🤖 GPT', callback_data=EditMode(id=market.pk, mode='not_use_sheet'))
+    kb.button(text='🔙 Назад', callback_data='back_to_call')
     return kb.adjust(1).as_markup()
 
 
@@ -37,7 +37,7 @@ async def markets_all_kb(markets):
     for market in markets:
         if not market.gmail_markets.first():
             kb.button(text=market.name_market, callback_data=MarketsTables(id=market.pk))
-    kb.button(text='🔙 Назад', callback_data='table_sheet')
+    kb.button(text='🔙 Назад', callback_data='back_to_call')
     return kb.adjust(1).as_markup()
 
 
@@ -92,7 +92,7 @@ async def back_triggers():
     return kb.as_markup()
 
 
-async def pagen_answers_sheet(answers, start: int, stop: int):
+async def pagen_answers_sheet(answers, start: int, stop: int, mode=False, back_call: str = 'wait_answer'):
     kb = InlineKeyboardBuilder()
     if start < 0:
         start = 0
@@ -101,15 +101,17 @@ async def pagen_answers_sheet(answers, start: int, stop: int):
         start = 0
         stop = 6
     for answer in answers[start:stop]:
-        answer = answer.created_at.strftime('%H:%M') + " " + answer.created_at.strftime(
+        answer_text = answer.created_at.strftime('%H:%M') + " " + answer.created_at.strftime(
             '%d.%m.%Y') + ' ' + answer.answer[:20]
-        kb.button(text=answer, callback_data=AnswerSheet(pk=answer.pk))
+        kb.button(text=answer_text, callback_data=AnswerSheet(pk=answer.pk, generate=mode))
     kb.adjust(2)
-    next_page = InlineKeyboardButton(text="▶", callback_data=AnswerSheetPagen(st=start + 6, stop=stop + 6).pack())
+    next_page = InlineKeyboardButton(text="▶", callback_data=AnswerSheetPagen(st=start + 6, stop=stop + 6,
+                                                                              generate=mode).pack())
     previous_page = InlineKeyboardButton(text="◀",
-                                         callback_data=AnswerSheetPagen(st=start - 6, stop=stop - 6).pack())
+                                         callback_data=AnswerSheetPagen(st=start - 6, stop=stop - 6,
+                                                                        generate=mode).pack())
     if len(answers) > 6:
         kb.row(previous_page, next_page)
-    back = InlineKeyboardButton(text='🔙 Назад', callback_data='wait_answer')
+    back = InlineKeyboardButton(text='🔙 Назад', callback_data=back_call)
     kb.row(back)
     return kb.as_markup()

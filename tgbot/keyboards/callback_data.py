@@ -1,3 +1,5 @@
+from typing import Union
+
 from aiogram.filters.callback_data import CallbackData
 
 
@@ -79,8 +81,15 @@ class TriggerPagenCallback(CallbackData, prefix='pagen_trig'):
 
 class AnswerSheet(CallbackData, prefix='st_ans_pagen'):
     pk: int
+    generate: bool
 
 
 class AnswerSheetPagen(CallbackData, prefix='pagen_answers'):
     st: int
     stop: int
+    generate: bool
+
+
+class OnScanCallback(CallbackData, prefix='on_scan'):
+    pk: int
+    mode: bool

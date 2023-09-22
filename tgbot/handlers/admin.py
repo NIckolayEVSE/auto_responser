@@ -1,11 +1,19 @@
 from aiogram import Router, F
+from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.utils.markdown import hcode
 
 from tgbot.filters.admin import AdminFilter
+from tgbot.models.db_commands import select_all_clients
 
 admin_router = Router()
 admin_router.message.filter(AdminFilter())
+
+
+@admin_router.message(Command(commands=["admin"]))
+async def check_count_users(message: Message):
+    users = await select_all_clients()
+    await message.answer('Количество пользователей в боте {}'.format(users.count()))
 
 
 @admin_router.message(F.content_type.in_(['photo', 'video', 'document']))

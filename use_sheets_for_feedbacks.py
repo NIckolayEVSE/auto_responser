@@ -37,7 +37,7 @@ async def scanning_answers_sheet(bot: Bot, config: Config):
 
     sheet = config.misc.google_table
     for market in markets:
-        if not market.use_sheet:
+        if not market.use_sheet or not market.on_scan:
             continue
 
         feedback = await ApiClient.get_feedbacks(market.token)

@@ -31,7 +31,7 @@ async def scanning_answers(bot: Bot, config: Config):
     from tgbot.models.db_commands import create_answer_feedback, select_all_markets
     markets = await select_all_markets()
     for market in markets:
-        if market.use_sheet:
+        if market.use_sheet or not market.on_scan:
             continue
         auto_check = {i: getattr(market, f'auto_send_star_{i}') for i in range(1, 6)}
         feedback = await ApiClient.get_feedbacks(market.token)
@@ -55,11 +55,10 @@ async def scanning_answers(bot: Bot, config: Config):
 
             link_feed = "https://www.wildberries.ru/catalog/" + str(feed["productDetails"]["nmId"]) + '/detail.aspx'
 
-            text = f'{hbold("Оценка")}: {feed["productValuation"]} ⭐\n' \
-                   f'{hbold("Товар")}: {hlink(feed["productDetails"]["productName"], link_feed)}\n\n' \
-                   f'{hbold("Текст отзыва")}:\n' \
-                   f'{hcode(feed["text"])}\n'
-
+            text = "\n".join([f'{hbold("Оценка")}: {feed["productValuation"]} ⭐',
+                              f'{hbold("Товар")}: {hlink(feed["productDetails"]["productName"], link_feed)}\n',
+                              f'{hbold("Текст отзыва")}:',
+                              f'{hcode(feed["text"]) if feed["text"] else hbold("У этого отзыва только оценка")}'])
             resul_feedback = await generate_text_func(feed['text'], bot, config)
 
             if not resul_feedback:
@@ -95,7 +94,7 @@ async def scanning_answers(bot: Bot, config: Config):
                     await ApiClient.send_feedback(market.token, feed['id'], result_text)
 
                     text = "\n".join([f'Ответ на отзыв успешно отправлен\n', text,
-                                      f"\n{hbold('Ответ')}:\n{result_text}"])
+                                      f"\n\n{hbold('Ответ')}:\n{result_text}"])
                     await bot.send_message(chat_id=market.user.telegram_id, text=text)
                 else:
 
@@ -106,7 +105,7 @@ async def scanning_answers(bot: Bot, config: Config):
             else:
                 try:
                     text = "\n".join([f'Новый отзыв 🆕\n', f'{hbold("Магазин")}: {market.name_market}\n', text,
-                                      f'\n{hbold("Ответ")}:', f'{result_text}'])
+                                      f'\n\n{hbold("Ответ")}:', f'{result_text}'])
                     text_for_edit = f"Не удаляйте эту строку (редактируйте только текст отзыва) feedback_id={feed['id']}\n\n{result_text}"
                     await bot.send_message(chat_id=market.user.telegram_id, text=text,
                                            reply_markup=await on_check_kb(feed['id'], text_for_edit,

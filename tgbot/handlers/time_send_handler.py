@@ -7,12 +7,18 @@ from aiogram.types import CallbackQuery, Message
 
 from tgbot.keyboards.callback_data import DatesCallback, MyMarkets
 from tgbot.keyboards.time_send_feed_kb import show_time_kb, days_statistic, back_stat, markets_kb, cancel_add_signature, \
-    edit_signature_kb, feedback_choose_action_kb
+    edit_signature_kb, feedback_choose_action_kb, settings_notifications
 from tgbot.misc.some_data import date_list
 from tgbot.misc.states import EnterMyTimeState, EddSignature, EditSignature
 from tgbot.models.db_commands import select_client, select_market
 
 time_router = Router()
+
+
+@time_router.callback_query(F.data == 'settings_feeds')
+async def settings_feeds(call: CallbackQuery):
+    await call.message.edit_text('Выберите желаемую настройку',
+                                 reply_markup=await settings_notifications())
 
 
 @time_router.callback_query(F.data == 'time_send_feed')

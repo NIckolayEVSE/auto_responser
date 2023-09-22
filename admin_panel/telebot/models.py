@@ -122,6 +122,10 @@ class WbToken(models.Model):
         default=False,
         verbose_name='False, то полуавтоматический режим'
     )
+    on_scan = models.BooleanField(
+        default=True,
+        verbose_name='(T) сканирование вкл, (F) нет'
+    )
 
     class Meta:
         verbose_name = 'Магазины телеграмм бота'

@@ -12,7 +12,15 @@ async def show_time_kb(date_list, dates):
         text = '✅️ ' + date_dct().get(date) if date in date_list else date_dct().get(date)
         kb.button(text=text, callback_data=DatesCallback(date=date))
     kb.button(text="Ввести самостоятельно", callback_data='enter_self')
-    kb.button(text="Назад", callback_data='my_office')
+    kb.button(text="Назад", callback_data='settings_feeds')
+    return kb.adjust(1).as_markup()
+
+
+async def settings_notifications():
+    kb = InlineKeyboardBuilder()
+    kb.button(text='⏰ Время отправки уведомлений', callback_data='time_send_feed')
+    kb.button(text='🔔 Настроить уведомления', callback_data='sett_feed')
+    kb.button(text='🔙 Назад', callback_data='my_office')
     return kb.adjust(1).as_markup()
 
 
@@ -68,5 +76,5 @@ async def feedback_choose_action_kb(feedback):
         kb.button(text='❌ Отключить уведомления', callback_data='feed_true')
     else:
         kb.button(text='✅ Включить уведомления', callback_data='feed_false')
-    kb.button(text="Назад", callback_data='my_office')
+    kb.button(text="Назад", callback_data='settings_feeds')
     return kb.adjust(1).as_markup()

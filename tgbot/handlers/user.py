@@ -83,8 +83,11 @@ async def enter_item_feedback_state(message: Message, state: FSMContext, bot: Bo
 @user_router.callback_query(ManualCallback.filter())
 async def gen_again_func(call: CallbackQuery, bot: Bot, callback_data: ManualCallback, config: Config):
     feed = await select_manual_feed(callback_data.id)
+    await call.answer('Подождите идет генерация', show_alert=True)
     answer_text = await generate_text_func(feed.feedback, bot, config)
     text_result = "\n".join([f'{hbold("Ваш отзыв")}:',
                              f'{hcode(feed.feedback)}\n', f'{hbold("Сгенерированный новый ответ:")}',
-                             f'{answer_text}'])
+                             f'{hcode(answer_text)}'])
     await call.message.edit_text(text=text_result, reply_markup=await gen_again_kb(feed))
+
+

@@ -17,7 +17,7 @@ from tgbot.keyboards.triggers_kb import trigger_kb
 from tgbot.misc.main_texts_and_funcs import mode_edit_text, validate_email, create_table
 from tgbot.misc.states import AddGmailState
 from tgbot.models.db_commands import select_client, select_market, create_gmail, select_markets, select_all_triggers, \
-    get_answer_trigger, select_feedback_sheet
+    get_answer_trigger, select_feedback_sheet, select_feedback, select_feedback_pk, get_answer_trigger_pk
 
 sheets_router = Router()
 
@@ -43,19 +43,21 @@ async def table_sheet(event: CallbackQuery | Message, state: FSMContext):
 
 
 @sheets_router.callback_query(EditModeGenerate.filter())
-async def edit_mode(call: CallbackQuery, callback_data: EditModeGenerate):
+async def edit_mode(call: CallbackQuery, callback_data: EditModeGenerate, state: FSMContext):
     market = await select_market(pk=callback_data.id)
+    await state.update_data(id_empty_market=callback_data.id)
     await call.message.edit_text(text=mode_edit_text(market), reply_markup=await edit_sheet_mode_kb(market))
 
 
 @sheets_router.callback_query(EditMode.filter())
-async def edit_mode_sheet(call: CallbackQuery, callback_data: EditMode):
+async def edit_mode_sheet(call: CallbackQuery, callback_data: EditMode, state: FSMContext):
     market = await select_market(callback_data.id)
     if callback_data.mode == 'use_sheet':
         market.use_sheet = True
     elif callback_data.mode == 'not_use_sheet':
         market.use_sheet = False
     market.save()
+    await state.update_data(id_empty_market=callback_data.id)
     await call.message.edit_text(text=mode_edit_text(market),
                                  reply_markup=await edit_sheet_mode_kb(market))
 
@@ -119,7 +121,7 @@ async def add_gmail(message: Message, state: FSMContext, config: Config):
 async def my_sheets(call: CallbackQuery):
     user = await select_client(call.message.chat.id)
     markets = await select_markets(user)
-    text = 'Выберите магазин, чтобы прейти по ссылке на таблицу'
+    text = 'Выберите магазин, чтобы перейти по ссылке на таблицу'
     if not markets:
         text = 'У вас пока нет таблиц  ❌'
     await call.message.edit_text(text, reply_markup=await markets_url(markets))
@@ -127,8 +129,9 @@ async def my_sheets(call: CallbackQuery):
 
 @sheets_router.callback_query(F.data == 'wait_answer')
 async def wait_answer(call: CallbackQuery):
-    await call.message.edit_text("Выберите категорию отзывов, которую хотите просмотреть",
-                                 reply_markup=await type_feeds_kb())
+    text = 'В данном меню вы можете просмотреть неотвеченные отзывы, сгенерированные с использованием {}\n\n' \
+           'Выберите категорию отзывов'.format(hbold("таблиц"))
+    await call.message.edit_text(text, reply_markup=await type_feeds_kb())
 
 
 @sheets_router.callback_query(F.data == 'cat_trig')
@@ -154,7 +157,7 @@ async def pagination_triggers(call: CallbackQuery, callback_data: TriggerPagenCa
 
 @sheets_router.callback_query(TriggerPagCallback.filter())
 async def details_trigger(call: CallbackQuery, callback_data: TriggerPagCallback):
-    trigger = await get_answer_trigger(callback_data.pk)
+    trigger = await get_answer_trigger_pk(callback_data.pk)
     text = '\n'.join([f'Ответ с {hbold("Триггером")}',
                       f'{trigger.trigger}\n',
                       f'{hbold("Оценка")}: {trigger.rating} ⭐\n',
@@ -182,24 +185,33 @@ async def feedback_without_triggers(call: CallbackQuery):
 
 @sheets_router.callback_query(AnswerSheetPagen.filter())
 async def pagination_triggers(call: CallbackQuery, callback_data: AnswerSheetPagen):
-    answers = await select_feedback_sheet(await select_client(call.message.chat.id))
+    answers = await select_feedback_sheet(await select_client(call.message.chat.id), callback_data.generate)
+    back_call = 'my_office' if callback_data.generate else 'wait_answer'
+    mode = bool(callback_data.generate)
+    text = 'Выберите неотвеченный отзыв'
+    if callback_data.generate:
+        text = "\n".join([
+            f'В данном меню вы можете просмотреть неотвеченные отзывы, сгенерированные с использованием {hbold("GPT генерации")}\n',
+            text
+        ])
     try:
-        await call.message.edit_text('Выберите неотвеченный отзыв',
-                                     reply_markup=await pagen_answers_sheet(answers, callback_data.st,
-                                                                            callback_data.stop))
+        await call.message.edit_text(text, reply_markup=await pagen_answers_sheet(answers, callback_data.st,
+                                                                                  callback_data.stop,
+                                                                                  back_call=back_call,
+                                                                                  mode=mode))
     except TelegramBadRequest as _err:
         # print(_err)
         await call.answer()
 
 
 @sheets_router.callback_query(AnswerSheet.filter())
-async def details_trigger(call: CallbackQuery, callback_data: AnswerSheet):
-    answer = await get_answer_trigger(callback_data.pk)
+async def details_trigger(call: CallbackQuery, callback_data: AnswerSheet, state: FSMContext):
+    answer = await select_feedback_pk(callback_data.pk)
     text = "\n".join([f'Отзыв\n', f'{hbold("Магазин")}: {answer.market.name_market}\n',
                       f'{hbold("Оценка")}: {answer.rating} ⭐',
                       f'{hbold("Товар")}: {hlink(answer.name_item, answer.link_feedback)}\n',
                       f'{hbold("Текст отзыва")}:',
-                      f'{hcode(answer.feedback)}'
+                      f'{hcode(answer.feedback) if answer.feedback else hbold("У этого отзыва только оценка")}\n',
                       f'{hbold("Ответ")}:', f'{answer.answer}'
                       ])
 
@@ -207,5 +219,8 @@ async def details_trigger(call: CallbackQuery, callback_data: AnswerSheet):
         f"Не удаляйте эту строку (редактируйте только текст отзыва) feedback_id={answer.feedback_id}\n",
         f"{answer.answer}"
     ])
+    gen = 'gen' if callback_data.generate else 'not_gen'
+    back = 'wait_answer_gpt' if callback_data.generate else 'no_trig'
+    await state.update_data(gen=gen, back=back)
     await call.message.edit_text(text=text, reply_markup=await on_check_kb(answer.feedback_id, text_for_edit,
-                                                                           answer.link_photos, 'not_gen', 'back'))
+                                                                           answer.link_photos, gen, back))

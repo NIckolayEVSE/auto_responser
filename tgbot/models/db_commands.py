@@ -71,8 +71,13 @@ def select_feedback(feedback_id):
 
 
 @sync_to_async
-def select_feedback_sheet(user):
-    return FeedbackAnswer.objects.filter(market__user=user, generated_mode=False)
+def select_feedback_pk(pk):
+    return FeedbackAnswer.objects.filter(pk=pk).first()
+
+
+@sync_to_async
+def select_feedback_sheet(user, generated_mode: bool = False):
+    return FeedbackAnswer.objects.filter(market__user=user, generated_mode=generated_mode)
 
 
 @sync_to_async
@@ -108,8 +113,13 @@ def create_answer_triggers(market, feedback_id, text, answer, rating, name_item,
 
 
 @sync_to_async
-def get_answer_trigger(feed_id):
-    return AnswerTriggers.objects.filter(pk=feed_id).first()
+def get_answer_trigger(feedback_id):
+    return AnswerTriggers.objects.filter(pk=feedback_id).first()
+
+
+@sync_to_async
+def get_answer_trigger_pk(pk):
+    return AnswerTriggers.objects.filter(pk=pk).first()
 
 
 @sync_to_async
